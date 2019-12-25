@@ -7,7 +7,7 @@ import './TextGrid.scss';
 /**
  * This component renders the text grid and handles
  */
-function TextGrid(props) {
+export default function TextGrid(props) {
 
     const dispatch = useDispatch();
 
@@ -25,6 +25,7 @@ function TextGrid(props) {
 
     const handleMouseMove = (event) => {
         
+        // calculate the mouse position relative to the position of this component.
         let bounds = event.currentTarget.getBoundingClientRect();
         let mouseX = event.clientX - bounds.left;
         let mouseY = event.clientY - bounds.top;
@@ -34,7 +35,11 @@ function TextGrid(props) {
 
     const handleKeyPress = (event) => {
         event.preventDefault();
-        dispatch(actions.keyDown({key: event.key, isShiftDown: event.shiftKey}));
+        dispatch(actions.keyDown({ 
+            key: event.key, 
+            isShiftDown: event.shiftKey, 
+            callback: props.onKeyDown
+        }));
     }
 
     const handleMouseDown = (event) => {
@@ -113,9 +118,11 @@ function TextGridCell(props) {
 
     const isRowHovered = useSelector (state => state.hover.rowIndex === rowId );
     const isColHovered = useSelector (state => state.hover.colIndex === colId );
-    const isCellSelected = useSelector (state => state.target.cellIndex === cellId );
-    const insertMode = useSelector(state => state.insertMode );
-    const isCellHovered = isRowHovered && isColHovered;
+    const textDirX = useSelector(state => state.target.dir.x);
+    const textDirY = useSelector(state => state.target.dir.y);
+    const isCellHovered =  isRowHovered && isColHovered;
+    const isCellSelected = useSelector (state => state.target.rowIndex === rowId && state.target.colIndex === colId);
+    
 
     const getClassNames = () => {
 
@@ -124,8 +131,11 @@ function TextGridCell(props) {
         if( isCellHovered ) classNames.push( 'cell-hover' );
         if( isRowHovered )  classNames.push('row-hover');
         if( isColHovered ) classNames.push('col-hover');
-        if( isCellSelected && insertMode ) classNames.push('active-insert')
-        if( isCellSelected && !insertMode ) classNames.push('active-override')
+        if( isCellSelected ) classNames.push('active-override');
+        if( isCellSelected && textDirX > 0 ) classNames.push('active-override-left');
+        if( isCellSelected && textDirX < 0 ) classNames.push('active-override-right');
+        if( isCellSelected && textDirY > 0 ) classNames.push('active-override-top');
+        if( isCellSelected && textDirY < 0 ) classNames.push('active-override-bottom');
 
         return classNames.join(' ');
     }
@@ -146,10 +156,15 @@ function TextGridRangeSelection() {
     const viewport = useSelector(state => state.viewport);
 
     // with the viewport in place, we need to calculate the relative position of the selction box
-    const sci = selection.startColIndex - viewport.xOffset;
+    let sci = selection.startColIndex - viewport.xOffset;
     const eci = selection.endColIndex - viewport.xOffset;
-    const sri = selection.startRowIndex - viewport.yOffset;
+    let sri = selection.startRowIndex - viewport.yOffset;
     const eri = selection.endRowIndex - viewport.yOffset;
+
+    // if we are dragging upward, than our selection needs to start from the
+    // top of the next row.
+    if(eri < sri) { sri += 1; }
+    if(eci < sci) { sci += 1; }
 
     // calculate the size and position of the selection box
     // position is relative to the top left of the TextGrid component
@@ -157,7 +172,10 @@ function TextGridRangeSelection() {
     const height = (eri- sri + 1) * (cellHeight-1) + ((eri - sri) < 0 ? -(cellHeight-1) : 0);
     const left = (sci * (cellWidth-1)) + Math.min(width, 0);
     const top = (sri * (cellHeight-1)) + Math.min(height, 0);
-    const style={ width: Math.abs(width), height: Math.abs(height), left, top };
+    let style={ width: Math.abs(width), height: Math.abs(height), left, top };
+
+    if(width == 0 || height == 0)
+        style.display = 'none';
 
     // render the selection grid.
     return(<div className='text-grid-selection' style={style}></div>);
@@ -171,6 +189,7 @@ export function TextGridStatusBar() {
     const viewport = useSelector(state => state.viewport );
     const target = useSelector(state => state.target);
     const cells = useSelector(state => state.cells);
+    const selection = useSelector(state => state.selection);
 
     return(<div className="text-grid-status-bar">
         <ul>
@@ -180,8 +199,14 @@ export function TextGridStatusBar() {
             <li>SY: {viewport.yOffset}</li>
             <li>TX: {target.colIndex}{}</li>
             <li>TY: {target.rowIndex}{}</li>
-            <li>NumRows: {cells.length}</li>
-            <li>NumCols: {!!cells[target.rowIndex] ? cells[target.rowIndex].length : ''}</li>
+
+            <li>SX: {selection.startColIndex}</li>
+            <li>SY: {selection.startRowIndex}</li>
+            <li>EX: {selection.endColIndex}</li>
+            <li>EY: {selection.endRowIndex}</li>
+            <li>dragging: {selection.isDragging ? 'true' : 'false'}</li>
+            <li>mouseDown: {selection.isMouseDown? 'true' : 'false'}</li>
+            
         </ul>
     </div>);
 }
@@ -253,7 +278,6 @@ export function TextGridConsole() {
     }
 
     const handleSelect = (event) => {
-        // console.log('START: ' + event.target.selectionStart + '    READONLY: ' + readOnlyPos );
         if(event.target.selectionStart === readOnlyPos-1){
             event.target.setSelectionRange(readOnlyPos, readOnlyPos);
         }
@@ -266,7 +290,7 @@ export function TextGridConsole() {
         setConsoleText(event.target.value);
     }
 
-    return(<div className="text-grid-console" style={{height: 200, display: 'flex'}}>
+    return(<div className="text-grid-console" style={{maxHeight: 200, height: 200, display: 'flex'}}>
         <textarea wrap="off" spellCheck="false" value={consoleText}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
@@ -274,5 +298,3 @@ export function TextGridConsole() {
         </textarea>
     </div>);
 }
-
-export  default TextGrid;

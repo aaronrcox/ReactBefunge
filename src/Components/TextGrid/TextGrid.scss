@@ -12,22 +12,18 @@ $tg-text-active: rgb(156, 220, 254);
 $tg-grid-selection-color: rgba(255, 255, 255, 0.1);
 $tg-grid-selection-border-color: rgba(220, 220, 170, 0.5);
 
+$tg-grid-arrow-size: 4px;
+
+$tg-grid-scroll-track-background: rgb(30, 30, 30);
+$tg-grid-scroll-thumb-background: rgba(255, 255, 255, 0.1);
+$tg-grid-scroll-thumb-hover-background: rgba(255, 255, 255, 0.2);
+
+// Scrollbars
 .text-grid-area::-webkit-scrollbar { width: 8px; height: 8px; }
+.text-grid-area::-webkit-scrollbar-track { background-color: $tg-grid-scroll-track-background; }
+.text-grid-area::-webkit-scrollbar-thumb { background: $tg-grid-scroll-thumb-background; border-radius: 10px; }
+.text-grid-area::-webkit-scrollbar-thumb:hover { background: $tg-grid-scroll-thumb-hover-background }
 
-/* Track */
-.text-grid-area::-webkit-scrollbar-track {
-    background-color: $tg-bg;
-}
-
-/* Handle */
-.text-grid-area::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-}
-/* Handle on hover */
-.text-grid-area::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
-}
 
 .text-grid-area:focus {
     outline: none;
@@ -107,6 +103,7 @@ $tg-grid-selection-border-color: rgba(220, 220, 170, 0.5);
         background-color: $tg-grid-selection-color;
         position: absolute;
         display: inline-block;
+        z-index: 1;
     }
 
     .text-grid-row {
@@ -121,6 +118,7 @@ $tg-grid-selection-border-color: rgba(220, 220, 170, 0.5);
         margin-top: -1px;
 
         .text-grid-cell {
+            position: relative;
             box-sizing: border-box;
             border: 1px solid $tg-bg-lighter;
             //border-right: 1px  rgba(255, 255, 255, 0);
@@ -148,33 +146,89 @@ $tg-grid-selection-border-color: rgba(220, 220, 170, 0.5);
         }
 
         .active-override {
-            border-left: 1px solid $tg-text-active;
             background-color: $tg-bg-lightest;
             color: $tg-text-active;
+            z-index: 1;
+        }
+
+        .active-override-top { border-top: 1px solid $tg-text-active; }
+        .active-override-left { border-left: 1px solid $tg-text-active; }
+        .active-override-right { border-right: 1px solid $tg-text-active; }
+        .active-override-bottom { border-bottom: 1px solid $tg-text-active; }
+
+        .active-override:after {
+            content:'';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border: solid $tg-grid-arrow-size transparent;
+        }
+
+        .active-override-top:after {
+            top: 0%;
+            left: 50%;
+            margin-left: -$tg-grid-arrow-size;
+            border-top: solid $tg-grid-arrow-size $tg-text-active;
+        }
+
+        .active-override-bottom:after {   
+            bottom: 0%;
+            left: 50%;
+            margin-left: -$tg-grid-arrow-size;
+            border-bottom: solid $tg-grid-arrow-size $tg-text-active;
+        }
+
+        .active-override-left:after{
+            top: 50%;
+            left: 0px;
+            margin-top: -$tg-grid-arrow-size;
+            border-left: solid $tg-grid-arrow-size $tg-text-active;
+        }
+
+        .active-override-right:after{
+            top: 50%;
+            right: 0%;
+            margin-top: -$tg-grid-arrow-size;
+            border-right: solid $tg-grid-arrow-size $tg-text-active;
         }
 
         .active-insert {
             border-left: 1px solid $tg-text-active;
-            
         }
     }
 }
 
 .text-grid-console {
-    padding:10px;
+    padding-top:10px;
+    padding-right: 0px;
+    padding-bottom: 0px;
+
     border-top: 1px solid $tg-bg-lighter;
     background: $tg-bg-darker;
+    display: flex;
+    flex-direction: col;
+
+    textarea::-webkit-scrollbar { width: 8px; height: 8px; }
+    textarea::-webkit-scrollbar-track { background-color: $tg-grid-scroll-track-background; }
+    textarea::-webkit-scrollbar-thumb { background: $tg-grid-scroll-thumb-background; border-radius: 10px; }
+    textarea::-webkit-scrollbar-thumb:hover { background: $tg-grid-scroll-thumb-hover-background }
 
     textarea {
         outline: none;
         resize: none;
         overflow: auto;
+        display: flex;
+        flex: 1;
+
         width: 100%;
-        height: 100%;
+        
         border: 0px solid #888;
         background: $tg-bg-darker;
         color: $tg-text-color;
         padding: 10px;
         font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace; 
+
+
+
       }
 }

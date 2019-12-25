@@ -25,7 +25,7 @@ const initialState = {
         rowIndex: -1,
         colIndex: -1,
         cellIndex: -1,
-        dir: {x: 0, y: -1}
+        dir: {x: 1, y: 0}
     },
 
     selection: {
@@ -64,12 +64,15 @@ export function reducer(state = initialState, action) {
          * 
          */
         case actions.SET_CELL_VALUE: {
-            const rowId = action.payload.rowIndex;
-            const colId = action.payload.colIndex;
+
+            const rowIndex = action.payload.rowIndex ? action.payload.rowIndex : state.target.rowIndex;
+            const colIndex = action.payload.colIndex ? action.payload.colIndex : state.target.colIndex;
             const value = action.payload.value;
+
             const cells = state.cells;
-            _fillArrCells(cells, colId, rowId);
-            cells[rowId][colId] = value;
+
+            _fillArrCells(cells, colIndex, rowIndex);
+            cells[rowIndex][colIndex] = value;
             return {...state, cells };
         }
 
@@ -91,21 +94,21 @@ export function reducer(state = initialState, action) {
         /**
          * 
          */
-        case actions.SET_INSERT_MODE: {
-            return {...state, insertMode: action.payload.insertMode }
+        case actions.MOVE_TARGET_CELL: {
+            const modifier = action.payload.invert ? -1 : 1;
+            const xDir = action.payload && action.payload.x !== undefined ? action.payload.x : state.target.dir.x;
+            const yDir = action.payload && action.payload.y !== undefined ? action.payload.y : state.target.dir.y;
+            const target = {...state.target, ..._moveTarget(state, state.target, xDir * modifier, yDir * modifier) };
+            const selection = {
+                ...state.selection,
+                startRowIndex: target.rowIndex,
+                startColIndex: target.colIndex,
+                endRowIndex: target.rowIndex,
+                endColIndex: target.colIndex
+            };
+            return { ...state, target, selection };
         }
 
-        /**
-         * 
-         */
-        case actions.SHIFT_CELLS_IN_RANGE: {
-            const {startColIndex, startRowIndex, endColIndex, endRowIndex, dx, dy} = action.payload;
-            const cells = state.cells;
-            if(dx < 0 ) {  _shiftLeft(startColIndex, startRowIndex, endRowIndex, cells, Math.abs(dx));  }
-            if(dx > 0 ) {  _shiftRight(startColIndex, startRowIndex, endRowIndex, cells, Math.abs(dx));  }
-
-            return {...state, cells};
-        }
 
         /**
          * 
@@ -170,15 +173,28 @@ export function reducer(state = initialState, action) {
          * 
          */
         case actions.MOUSE_DOWN: {
-            const selection = {...state.selection, isMouseDown: true};
-            return {...state,  selection}
+            const target = {
+                ...state.target,
+                rowIndex: state.hover.rowIndex,
+                colIndex: state.hover.colIndex,
+                cellIndex: state.hover.cellIndex
+            };
+            const selection = {
+                ...state.selection,
+                startColIndex: target.colIndex,
+                startRowIndex: target.rowIndex,
+                endColIndex: target.colIndex,
+                endRowIndex: target.rowIndex,
+                isDragging: false, 
+                isMouseDown: true};
+            return {...state,  target, selection}
         }
 
         /**
          * 
          */
         case actions.MOUSE_UP: {
-            const selection = {...state.selection, isMouseDown: false};
+            const selection = {...state.selection, isDragging: false, isMouseDown: false};
             return {...state,  selection}
         }
 
@@ -197,31 +213,47 @@ export function reducer(state = initialState, action) {
         /**
          * 
          */
-        case actions.DRAG_START: {
-            const target = {...state.target};
-            const selection = {...state.selection, isDragging: true};
-            selection.startColIndex = target.colIndex;
-            selection.startRowIndex = target.rowIndex;
-            selection.endColIndex = target.colIndex;
-            selection.endRowIndex = target.rowIndex + 1;
-            return {...state, selection};
-        }
+        case actions.DRAG: {
 
-        /**
-         * 
-         */
-        case actions.DRAG_END: {
-            const selection = {...state.selection, isDragging: false};
-            return {...state, selection }
+            if( !state.selection.isDragging ) {
+                // Begin Dragging
+                const target = {
+                    ...state.target,
+                    rowIndex: state.hover.rowIndex,
+                    colIndex: state.hover.colIndex,
+                    cellIndex: state.hover.cellIndex
+                };
+                const selection = {...state.selection, isDragging: true};
+                
+    
+                return {...state, selection, target};
+            }
+            else {
+                // Continue dragging
+                const selection = {...state.selection};
+                selection.endRowIndex = state.hover.rowIndex;
+                selection.endColIndex = state.hover.colIndex;
+                selection.endColIndex += (selection.endColIndex < selection.startColIndex ? 0 : 1);
+                
+                const target = {
+                    ...state.target,
+                    rowIndex: state.hover.rowIndex,
+                    colIndex: state.hover.colIndex,
+                    cellIndex: state.hover.cellIndex
+                };
+                return {...state, selection, target };
+            }
+           
         }
 
         /**
          * 
          */
         case actions.SET_TYPEING_DIRECTION: {
-            const target = {...state.target };
-            target.dir = action.payload;
+            const target = { ...state.target };
+            target.dir = { ...action.payload };
             return {...state, target };
+            //return state;
         }
 
         /**
@@ -233,27 +265,6 @@ export function reducer(state = initialState, action) {
     }
 };
 
-function _shiftLeft(sx, sy, ey, arr, shiftCount) {
-    for(let counter = 0; counter < shiftCount; counter++) {
-        for(let ri=sy; ri<=ey; ri++) {
-            arr[ri].splice(sx, 1);
-            arr[ri].push('');
-        }
-        sx-=1;
-    }
-}
-
-function _shiftRight(sx, sy, ey, arr, shiftCount) {
-    for(let counter = 0; counter < shiftCount; counter++) {
-        for(let ri=sy; ri<=ey; ri++) {
-            if(arr[ri]) {
-                arr[ri].pop();
-                arr[ri].splice(sx, 0, ['']);
-            }
-        }
-        sx+=1;
-    }
-}
 
 function _fillArrCells(arr, x, y) {
     while(arr.length <= y)
@@ -261,4 +272,21 @@ function _fillArrCells(arr, x, y) {
 
     while(arr[y].length <= x)
         arr[y].push('');
+}
+
+function _moveTarget(state, target, dx, dy) {
+    const numCols = state.cols;
+
+    let rowIndex = target.rowIndex + dy;
+    let colIndex = target.colIndex + dx;
+
+    // prevent wrapping
+    rowIndex = Math.max(rowIndex, 0);
+    colIndex = Math.max(colIndex, 0);
+
+    // re-calculate the row/col index values based on the new cell index.
+    const cellIndex = rowIndex * numCols + colIndex;
+
+    
+    return { rowIndex, colIndex, cellIndex };
 }

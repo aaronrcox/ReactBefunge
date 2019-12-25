@@ -63,40 +63,15 @@ const onMouseMoved = (action, state) => action.pipe(
             newActions.push(actions.setHoverCell(hoverState));
         }
 
+        if(state.value.selection.isMouseDown) {
+            newActions.push(actions.drag());                   
+        }
+
         // If we move the mouse while the mouse is down, than we will
         // either begin the selection, or expand the selection
-        if(state.value.selection.isMouseDown) {
-            if( !state.value.selection.isDragging ) {
-                newActions.push(actions.dragStart());
-            }
-            else {
-                // TODO: This logic can be done in a "Drag" reducer.
-                const selection = {...state.value.selection};
-                selection.endRowIndex = rowIndex;
-                selection.endColIndex = colIndex + (selection.endColIndex < selection.startColIndex ? 0 : 1);
-                newActions.push(actions.setSelectionArea(selection)); 
-            }                   
-        }
+        
         
         return newActions;
-    })
-);
-
-const onMouseDown = (action, state) => action.pipe(
-    ofType(actions.MOUSE_DOWN),
-    mergeMap((action) => {
-
-        // set the target cursor position to the location of the hovered cell
-        const target = _moveTarget(state.value, state.value.hover, 0, 0);
-        return [actions.setTargetCell(target)];
-    })
-);
-
-const onMouseUp = (action, state) => action.pipe(
-    ofType(actions.MOUSE_UP),
-    mergeMap((action) => {
-        // No action required
-        return [];
     })
 );
 
@@ -107,89 +82,79 @@ const onKeyDown = (action, state) => action.pipe(
         const key = action.payload.key;
         const rowIndex = state.value.target.rowIndex;
         const colIndex = state.value.target.colIndex;
-        const insertMode = state.value.insertMode;
         const isShiftDown = action.payload.isShiftDown;
-        const selection = {...state.value.selection};
-        const targetDir = {...state.value.target.dir};
+        const selection = { ...state.value.selection };
+
+        const cbResult = action.payload.callback(state.value, key) || {};
+        const cbActions = cbResult.actions || [];
+        
+        if(cbResult.preventDefault) {
+            return cbActions;
+        }
 
         if(key.length === 1) {
-            const target = _moveTarget(state.value, state.value.target, targetDir.x, targetDir.y);
             return [
-                insertMode ? actions.insertCol(rowIndex, colIndex) : actions.none(),
+                ...cbActions,
                 actions.setCellValue({ rowIndex, colIndex, value: key }),
-                actions.setTargetCell(target)
+                actions.moveTargetCell(),
             ];
         }
         else {
             if( key === 'Tab' ) {
                 const dir = isShiftDown ? -1 : 1;
-                const target = _moveTarget(state.value, state.value.target, dir, 0);
-                return[ actions.setTargetCell(target) ];
+                return[ ...cbActions, actions.moveTargetCell(dir, 0) ];
             }
             if( key === 'Enter' ) {
-                const target = _moveTarget(state.value, state.value.target, 0, 1);
-                return[ actions.setTargetCell(target) ];
+                const dir = isShiftDown ? -1 : 1;
+                return [ ...cbActions, actions.moveTargetCell(0, dir) ];
             }
             else if( key === 'Backspace') {
-                const target = _moveTarget(state.value, state.value.target, -targetDir.x, -targetDir.y);
                 return[
-                    insertMode ? 
-                        actions.deleteCol(target.rowIndex, target.colIndex) :
-                        actions.setCellValue({ rowIndex: target.rowIndex, colIndex: target.colIndex, value: '' }),
-                    actions.setTargetCell(target)
+                    ...cbActions,
+                    actions.setCellValue({ value: '' }),
+                    actions.moveTargetCell(undefined, undefined, true)
                 ];
             }
             else if( key === 'Delete') {
-                return[ 
-                    insertMode ? 
-                        actions.shiftCellsInRange(colIndex, rowIndex, colIndex, rowIndex, -1, 0) :
-                        actions.setCellValue({ rowIndex, colIndex, value: '' }) 
-                    ];
+                return[ ...cbActions, actions.setCellValue({ rowIndex, colIndex, value: '' }) ];
             }
             else if( key === 'ArrowLeft') {
                 
                 if(isShiftDown) {
                     selection.endColIndex -= 1;
-                    return[  actions.setSelectionArea(selection) ];
+                    return[  ...cbActions, actions.setSelectionArea(selection) ];
                 }
                 else {
-                    const target = _moveTarget(state.value, state.value.target, -1, 0);
-                    return[ actions.setTargetCell(target) ];
+                    return [...cbActions, actions.moveTargetCell(-1, 0), actions.setTypeingDir(-1, 0)];
                 }
             }
             else if( key === 'ArrowRight') {
                 if(isShiftDown) {
                     selection.endColIndex += 1;
-                    return[  actions.setSelectionArea(selection) ];
+                    return[ ...cbActions, actions.setSelectionArea(selection) ];
                 }
                 else {
-                    const target = _moveTarget(state.value, state.value.target, 1, 0)
-                    return[ actions.setTargetCell(target) ];
+                    return [...cbActions, actions.moveTargetCell(1, 0), actions.setTypeingDir(1, 0)];
                 }
             }
             else if( key === 'ArrowUp') {
                 if(isShiftDown) {
                     selection.endRowIndex -= 1;
-                    return[  actions.setSelectionArea(selection) ];
+                    return[ ...cbActions, actions.setSelectionArea(selection) ];
                 }
                 else {
-                    const target =  _moveTarget(state.value, state.value.target, 0, -1);
-                    return[ actions.setTargetCell(target) ];
+                    return [ ...cbActions, actions.moveTargetCell(0, -1), actions.setTypeingDir(0, -1)];
                 }
             }
             else if( key === 'ArrowDown') {
                 if(isShiftDown) {
                     selection.endRowIndex += 1;
-                    return[  actions.setSelectionArea(selection) ];
+                    return[ ...cbActions, actions.setSelectionArea(selection) ];
                 }
                 else {
-                    const target = _moveTarget(state.value, state.value.target, 0, 1);
-                    return[ actions.setTargetCell(target) ];
+                    return [ ...cbActions, actions.moveTargetCell(0, 1), actions.setTypeingDir(0, 1)];
                 }
                 
-            }
-            else if( key === 'Insert') {
-                return[ actions.setInsertMode(!state.value.insertMode) ];
             }
         }
 
@@ -200,30 +165,5 @@ const onKeyDown = (action, state) => action.pipe(
 export const epics = combineEpics(
     setupGrid,
     onMouseMoved,
-    onMouseDown,
-    onMouseUp,
     onKeyDown
 );
-
-
-// ============================================================================
-// HELPER FUNCTIONS
-// ============================================================================
-
-function _moveTarget(state, target, dx, dy) {
-    const numCols = state.cols;
-
-    let rowIndex = target.rowIndex + dy;
-    let colIndex = target.colIndex + dx;
-
-    // prevent wrapping
-    rowIndex = Math.max(rowIndex, 0);
-    colIndex = Math.max(colIndex, 0);
-
-
-    const cellIndex = rowIndex * numCols + colIndex;
-
-    // re-calculate the row/col index values based on the new cell index.
-    return { rowIndex, colIndex, cellIndex };
-}
-

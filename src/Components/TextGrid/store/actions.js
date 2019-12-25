@@ -9,23 +9,21 @@ export const MOUSE_UP = '[TextGrid] Mouse Released';
 
 export const SCROLL_VIEW = '[TextGrid] Scroll View';
 
-export const DRAG_START = '[TextGrid] Drag Start';
-export const DRAG_END = '[TextGrid] Drag End';
-export const DRAG_CANCEL = '[TextGrid] Drag Canceled';
+export const DRAG = '[TextGrid] Drag';
 
 export const KEY_DOWN = '[TextGrid] Key Down';
 
 export const SET_HOVER_CELL = '[TextGrid] Set Hover Cell';
 export const SET_CELL_VALUE = '[TextGrid] Set Cell Text';
+
 export const SET_TARGET_CELL = '[TextGrid] Set Target Cell';
-export const SHIFT_CELLS_IN_RANGE = '[TextGrid] Shift Cells In Range';
+export const MOVE_TARGET_CELL = '[TextGrid] Move Target Cell';
 
 export const INSERT_ROW = '[TextGrid] Insert Row';
 export const INSERT_COL = '[TextGrid] Insert Col';
 export const DELETE_ROW = '[TextGrid] Delete Row';
 export const DELETE_COL = '[TextGrid] Delete Col';
 
-export const SET_INSERT_MODE = '[TextGrid] Set Insert Mode';
 export const SET_SELECTION_AREA = '[TextGrid] Set Selection Area';
 
 export const SET_TYPEING_DIRECTION = '[TextGrid] Set Text Direction';
@@ -71,16 +69,8 @@ export function scrollView(xOffset, yOffset) {
     return { type: SCROLL_VIEW, payload: {xOffset, yOffset}};
 }
 
-export function dragStart() {
-    return { type: DRAG_START };
-}
-
-export function dragEnd() {
-    return { type: DRAG_END };
-}
-
-export function dragCancel() {
-    return { type: DRAG_CANCEL };
+export function drag() {
+    return { type: DRAG };
 }
 
 export function keyDown(payload) {
@@ -99,20 +89,14 @@ export function setTargetCell(payload) {
     return { type: SET_TARGET_CELL, payload};
 }
 
-export function setInsertMode(insertMode) {
-    return { type: SET_INSERT_MODE, payload: {insertMode}};
+export function moveTargetCell(x, y, invert) {
+    return { type: MOVE_TARGET_CELL, payload: {x, y, invert} };
 }
+
 
 export function setSelectionArea(payload) {
     // {startRowIndex, startColIndex, endRowIndex, endColIndex } 
     return { type: SET_SELECTION_AREA, payload};
-}
-
-export function shiftCellsInRange(startColIndex, startRowIndex, endColIndex, endRowIndex, dx, dy) {
-    return {
-        type: SHIFT_CELLS_IN_RANGE, 
-        payload: { startColIndex, startRowIndex, endColIndex, endRowIndex, dx, dy }
-    };
 }
 
 export function insertRow(rowIndex) {

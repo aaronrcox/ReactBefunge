@@ -1,9 +1,10 @@
 
 import React from 'react';
 import { Provider } from 'react-redux';
-import { store } from './store';
+import { store, actions } from './store';
 import TextGridImpl, {TextGridStatusBar, TextGridConsole} from './TextGrid';
 
+export { actions };
 export * from './TextGrid';
 
 export default function TextGrid(props) {
