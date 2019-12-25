@@ -20,10 +20,19 @@ dog
     return {};
   }
 
+  const config = {
+    cellWidth: 32,
+    cellHeight: 32,
+    text: text,
+    events: {
+      onKeyDown: handleKeyPress
+    }
+  }
+
   return (
     <div className="App">
         <div style={{width: 'calc(100%)', height: 'calc(100% )', overflow: 'hidden'}}>
-          <TextGrid tw={32} th={32} text={text} onKeyDown={handleKeyPress} ></TextGrid>
+          <TextGrid config={config}></TextGrid>
         </div>
     </div>
   );

@@ -3,8 +3,8 @@ import * as actions from './actions';
 const initialState = {
     cellWidth: 24,
     cellHeight: 24, 
-    rows: 0,
-    cols: 0,
+    rows: 0,    // TODO: set to length of cells
+    cols: 0,    // TODO: set to length of longest row in cells.
     cells: [],
     insertMode: false,
 
@@ -18,13 +18,13 @@ const initialState = {
     hover: {
         rowIndex: -1,
         colIndex: -1,
-        cellIndex: -1
+        cellIndex: -1 // TODO: refactor so cellindex is no longer used
     },
 
     target: {
         rowIndex: -1,
         colIndex: -1,
-        cellIndex: -1,
+        cellIndex: -1, // TODO: refactor so cellindex is no longer used
         dir: {x: 1, y: 0}
     },
 
@@ -167,6 +167,22 @@ export function reducer(state = initialState, action) {
                 cellIndex: selection.endRowIndex * state.cols + selection.endColIndex
             };
             return {...state, selection, target };
+        }
+
+        case actions.CLEAR_SELECTION_AREA: {
+            const cells = state.cells;
+            const sri = Math.min(state.selection.startRowIndex, state.selection.endRowIndex);
+            const eri = Math.max(state.selection.startRowIndex, state.selection.endRowIndex);
+            const sci = Math.min(state.selection.startColIndex, state.selection.endColIndex);
+            const eci = Math.max(state.selection.startColIndex, state.selection.endColIndex);
+
+            for(let r=sri; r<=eri && r < cells.length; r++){
+                for(let c=sci; c<=eci && c < cells[r].length; c++) {
+                    cells[r][c] = '';
+                }
+            }
+
+            return {...state, cells };
         }
 
         /**

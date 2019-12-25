@@ -25,6 +25,7 @@ export const DELETE_ROW = '[TextGrid] Delete Row';
 export const DELETE_COL = '[TextGrid] Delete Col';
 
 export const SET_SELECTION_AREA = '[TextGrid] Set Selection Area';
+export const CLEAR_SELECTION_AREA = '[TextGrid] Clear Selection';
 
 export const SET_TYPEING_DIRECTION = '[TextGrid] Set Text Direction';
 
@@ -97,6 +98,10 @@ export function moveTargetCell(x, y, invert) {
 export function setSelectionArea(payload) {
     // {startRowIndex, startColIndex, endRowIndex, endColIndex } 
     return { type: SET_SELECTION_AREA, payload};
+}
+
+export function clearSelectionArea(payload) {
+    return {type: CLEAR_SELECTION_AREA };
 }
 
 export function insertRow(rowIndex) {

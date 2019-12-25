@@ -19,7 +19,7 @@ export default function TextGrid(props) {
         const width = ref.current ? ref.current.offsetWidth : 0;
         const height = ref.current ? ref.current.offsetHeight: 0;
 
-        dispatch(actions.setupGrid(width, height, props.text, props.tw, props.th));
+        dispatch(actions.setupGrid(width, height, props.config.text, props.config.cellWidth, props.config.cellHeight));
 
     }, [props, dispatch]);
 
@@ -38,7 +38,7 @@ export default function TextGrid(props) {
         dispatch(actions.keyDown({ 
             key: event.key, 
             isShiftDown: event.shiftKey, 
-            callback: props.onKeyDown
+            callback: props.config.events.onKeyDown
         }));
     }
 

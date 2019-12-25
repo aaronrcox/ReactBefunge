@@ -83,8 +83,7 @@ const onKeyDown = (action, state) => action.pipe(
         const rowIndex = state.value.target.rowIndex;
         const colIndex = state.value.target.colIndex;
         const isShiftDown = action.payload.isShiftDown;
-        const selection = { ...state.value.selection };
-
+        
         const cbResult = action.payload.callback(state.value, key) || {};
         const cbActions = cbResult.actions || [];
         
@@ -109,52 +108,49 @@ const onKeyDown = (action, state) => action.pipe(
                 return [ ...cbActions, actions.moveTargetCell(0, dir) ];
             }
             else if( key === 'Backspace') {
-                return[
+                return [
                     ...cbActions,
+                    actions.clearSelectionArea(),
                     actions.setCellValue({ value: '' }),
                     actions.moveTargetCell(undefined, undefined, true)
                 ];
             }
             else if( key === 'Delete') {
-                return[ ...cbActions, actions.setCellValue({ rowIndex, colIndex, value: '' }) ];
+                return [ 
+                    ...cbActions, 
+                    actions.clearSelectionArea(),
+                    actions.setCellValue({ rowIndex, colIndex, value: '' }) 
+                ];
             }
-            else if( key === 'ArrowLeft') {
-                
+            else if( key.includes('Arrow') )
+            {
+                // calculate xy direction of arrow key press
+                let dir = {x: 0, y: 0};
+                switch(key) {
+                    case 'ArrowLeft': dir.x = -1; break;
+                    case 'ArrowRight': dir.x = 1; break;
+                    case 'ArrowUp': dir.y = -1; break;
+                    case 'ArrowDown': dir.y = 1; break;
+                }
+
+                // if we press arrow keys while shift is pressed, we are selecting
+                // otherwise, we are moving the target cursor position.
+
                 if(isShiftDown) {
-                    selection.endColIndex -= 1;
-                    return[  ...cbActions, actions.setSelectionArea(selection) ];
+                    // TODO: create action to grow/shrink the selection area
+                    const selection = { ...state.value.selection };
+                    const target = {...state.value.target };
+                    selection.endColIndex += dir.x;
+                    selection.endRowIndex += dir.y;
+                    return[  ...cbActions, actions.setSelectionArea(selection), actions.setTypeingDir(dir.x, dir.y) ];
                 }
                 else {
-                    return [...cbActions, actions.moveTargetCell(-1, 0), actions.setTypeingDir(-1, 0)];
+                    return [
+                        ...cbActions, 
+                        actions.moveTargetCell(dir.x, dir.y), 
+                        actions.setTypeingDir(dir.x, dir.y)
+                    ];
                 }
-            }
-            else if( key === 'ArrowRight') {
-                if(isShiftDown) {
-                    selection.endColIndex += 1;
-                    return[ ...cbActions, actions.setSelectionArea(selection) ];
-                }
-                else {
-                    return [...cbActions, actions.moveTargetCell(1, 0), actions.setTypeingDir(1, 0)];
-                }
-            }
-            else if( key === 'ArrowUp') {
-                if(isShiftDown) {
-                    selection.endRowIndex -= 1;
-                    return[ ...cbActions, actions.setSelectionArea(selection) ];
-                }
-                else {
-                    return [ ...cbActions, actions.moveTargetCell(0, -1), actions.setTypeingDir(0, -1)];
-                }
-            }
-            else if( key === 'ArrowDown') {
-                if(isShiftDown) {
-                    selection.endRowIndex += 1;
-                    return[ ...cbActions, actions.setSelectionArea(selection) ];
-                }
-                else {
-                    return [ ...cbActions, actions.moveTargetCell(0, 1), actions.setTypeingDir(0, 1)];
-                }
-                
             }
         }
 
