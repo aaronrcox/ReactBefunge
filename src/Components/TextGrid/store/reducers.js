@@ -6,7 +6,7 @@ const initialState = {
     rows: 0,
     cols: 0,
     cells: [],
-    insertMode: true,
+    insertMode: false,
 
     viewport: {
         rows: 0,
@@ -24,7 +24,8 @@ const initialState = {
     target: {
         rowIndex: -1,
         colIndex: -1,
-        cellIndex: -1
+        cellIndex: -1,
+        dir: {x: 0, y: -1}
     },
 
     selection: {
@@ -35,6 +36,8 @@ const initialState = {
         endRowIndex: 0,
         endColIndex: 0
     },
+
+    
 
     selectedCells: []
 };
@@ -215,6 +218,15 @@ export function reducer(state = initialState, action) {
         /**
          * 
          */
+        case actions.SET_TYPEING_DIRECTION: {
+            const target = {...state.target };
+            target.dir = action.payload;
+            return {...state, target };
+        }
+
+        /**
+         * 
+         */
         default: {
             return state;
         }
@@ -248,5 +260,5 @@ function _fillArrCells(arr, x, y) {
         arr.push([]);
 
     while(arr[y].length <= x)
-        arr.push('');
+        arr[y].push('');
 }

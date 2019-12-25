@@ -1,5 +1,5 @@
 export const NO_OP = '[TextGrid] NO Op';
-export const INCREMENT_COUNTER = '[TextGrid] INCREMENT_COUNTER';
+
 export const SETUP_GRID = '[TextGrid] Setup';
 export const INITIALISE_GRID = '[TextGrid] Initialise';
 
@@ -27,6 +27,8 @@ export const DELETE_COL = '[TextGrid] Delete Col';
 
 export const SET_INSERT_MODE = '[TextGrid] Set Insert Mode';
 export const SET_SELECTION_AREA = '[TextGrid] Set Selection Area';
+
+export const SET_TYPEING_DIRECTION = '[TextGrid] Set Text Direction';
 
 // TODO ACTIONS:
 // - COPY SELECTION
@@ -89,10 +91,6 @@ export function setHoverCell(payload) {
     return { type: SET_HOVER_CELL, payload };
 }
 
-export function incrementCounter(amount) {
-    return { type: INCREMENT_COUNTER, payload: amount }
-}
-
 export function setCellValue(payload) {
     return { type: SET_CELL_VALUE, payload};
 }
@@ -131,4 +129,8 @@ export function deleteRow(rowIndex) {
 
 export function deleteCol(rowIndex, colIndex) {
     return { type: DELETE_COL, payload: {rowIndex, colIndex}};
+}
+
+export function setTypeingDir(x, y) {
+    return { type: SET_TYPEING_DIRECTION, payload: {x, y} };
 }

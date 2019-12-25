@@ -110,11 +110,11 @@ const onKeyDown = (action, state) => action.pipe(
         const insertMode = state.value.insertMode;
         const isShiftDown = action.payload.isShiftDown;
         const selection = {...state.value.selection};
+        const targetDir = {...state.value.target.dir};
 
         if(key.length === 1) {
-            const target = _moveTarget(state.value, state.value.target, 1, 0);
+            const target = _moveTarget(state.value, state.value.target, targetDir.x, targetDir.y);
             return [
-                // insertMode ? actions.shiftCellsInRange(colIndex, rowIndex, target.colIndex, target.rowIndex, 1, 0) : actions.none(),
                 insertMode ? actions.insertCol(rowIndex, colIndex) : actions.none(),
                 actions.setCellValue({ rowIndex, colIndex, value: key }),
                 actions.setTargetCell(target)
@@ -131,11 +131,11 @@ const onKeyDown = (action, state) => action.pipe(
                 return[ actions.setTargetCell(target) ];
             }
             else if( key === 'Backspace') {
-                const target = _moveTarget(state.value, state.value.target, -1, 0);
+                const target = _moveTarget(state.value, state.value.target, -targetDir.x, -targetDir.y);
                 return[
                     insertMode ? 
                         actions.deleteCol(target.rowIndex, target.colIndex) :
-                        actions.setCellValue({ rowIndex, colIndex, value: '' }),
+                        actions.setCellValue({ rowIndex: target.rowIndex, colIndex: target.colIndex, value: '' }),
                     actions.setTargetCell(target)
                 ];
             }
