@@ -53,13 +53,13 @@ const onMouseMoved = (action, state) => action.pipe(
         // calculate the row/col/cell index the mouse is over
         const rowIndex = Math.floor(my / cellHeight) + viewport.yOffset;
         const colIndex = Math.floor(mx / cellWidth) + viewport.xOffset;
-        const cellIndex = rowIndex * state.value.cols + colIndex;
-        const hoverState = { rowIndex, colIndex, cellIndex };
+        
+        const hoverState = { rowIndex, colIndex };
 
         const newActions = [];
 
         // update the hover state
-        if(cellIndex !== state.value.hover.cellIndex) {
+        if(rowIndex !== state.value.hover.rowIndex || colIndex !== state.value.hover.colIndex) {
             newActions.push(actions.setHoverCell(hoverState));
         }
 
@@ -131,6 +131,7 @@ const onKeyDown = (action, state) => action.pipe(
                     case 'ArrowRight': dir.x = 1; break;
                     case 'ArrowUp': dir.y = -1; break;
                     case 'ArrowDown': dir.y = 1; break;
+                    default: break;
                 }
 
                 // if we press arrow keys while shift is pressed, we are selecting
@@ -139,7 +140,6 @@ const onKeyDown = (action, state) => action.pipe(
                 if(isShiftDown) {
                     // TODO: create action to grow/shrink the selection area
                     const selection = { ...state.value.selection };
-                    const target = {...state.value.target };
                     selection.endColIndex += dir.x;
                     selection.endRowIndex += dir.y;
                     return[  ...cbActions, actions.setSelectionArea(selection), actions.setTypeingDir(dir.x, dir.y) ];

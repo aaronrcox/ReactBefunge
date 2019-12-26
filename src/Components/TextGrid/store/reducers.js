@@ -18,13 +18,11 @@ const initialState = {
     hover: {
         rowIndex: -1,
         colIndex: -1,
-        cellIndex: -1 // TODO: refactor so cellindex is no longer used
     },
 
     target: {
         rowIndex: -1,
         colIndex: -1,
-        cellIndex: -1, // TODO: refactor so cellindex is no longer used
         dir: {x: 1, y: 0}
     },
 
@@ -164,7 +162,6 @@ export function reducer(state = initialState, action) {
                 ...state.target,
                 rowIndex: selection.endRowIndex,
                 colIndex: selection.endColIndex,
-                cellIndex: selection.endRowIndex * state.cols + selection.endColIndex
             };
             return {...state, selection, target };
         }
@@ -193,7 +190,6 @@ export function reducer(state = initialState, action) {
                 ...state.target,
                 rowIndex: state.hover.rowIndex,
                 colIndex: state.hover.colIndex,
-                cellIndex: state.hover.cellIndex
             };
             const selection = {
                 ...state.selection,
@@ -237,7 +233,6 @@ export function reducer(state = initialState, action) {
                     ...state.target,
                     rowIndex: state.hover.rowIndex,
                     colIndex: state.hover.colIndex,
-                    cellIndex: state.hover.cellIndex
                 };
                 const selection = {...state.selection, isDragging: true};
                 
@@ -255,7 +250,6 @@ export function reducer(state = initialState, action) {
                     ...state.target,
                     rowIndex: state.hover.rowIndex,
                     colIndex: state.hover.colIndex,
-                    cellIndex: state.hover.cellIndex
                 };
                 return {...state, selection, target };
             }
@@ -291,7 +285,6 @@ function _fillArrCells(arr, x, y) {
 }
 
 function _moveTarget(state, target, dx, dy) {
-    const numCols = state.cols;
 
     let rowIndex = target.rowIndex + dy;
     let colIndex = target.colIndex + dx;
@@ -300,9 +293,5 @@ function _moveTarget(state, target, dx, dy) {
     rowIndex = Math.max(rowIndex, 0);
     colIndex = Math.max(colIndex, 0);
 
-    // re-calculate the row/col index values based on the new cell index.
-    const cellIndex = rowIndex * numCols + colIndex;
-
-    
-    return { rowIndex, colIndex, cellIndex };
+    return { rowIndex, colIndex };
 }

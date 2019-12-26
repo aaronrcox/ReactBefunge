@@ -44,9 +44,6 @@ $tg-grid-scroll-thumb-hover-background: rgba(255, 255, 255, 0.2);
     overflow: auto;
     display: flex;
     flex: 1;
-
-    
-    
 }
 
 .text-grid-status-bar {
@@ -196,39 +193,4 @@ $tg-grid-scroll-thumb-hover-background: rgba(255, 255, 255, 0.2);
             border-left: 1px solid $tg-text-active;
         }
     }
-}
-
-.text-grid-console {
-    padding-top:10px;
-    padding-right: 0px;
-    padding-bottom: 0px;
-
-    border-top: 1px solid $tg-bg-lighter;
-    background: $tg-bg-darker;
-    display: flex;
-    flex-direction: col;
-
-    textarea::-webkit-scrollbar { width: 8px; height: 8px; }
-    textarea::-webkit-scrollbar-track { background-color: $tg-grid-scroll-track-background; }
-    textarea::-webkit-scrollbar-thumb { background: $tg-grid-scroll-thumb-background; border-radius: 10px; }
-    textarea::-webkit-scrollbar-thumb:hover { background: $tg-grid-scroll-thumb-hover-background }
-
-    textarea {
-        outline: none;
-        resize: none;
-        overflow: auto;
-        display: flex;
-        flex: 1;
-
-        width: 100%;
-        
-        border: 0px solid #888;
-        background: $tg-bg-darker;
-        color: $tg-text-color;
-        padding: 10px;
-        font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace; 
-
-
-
-      }
 }

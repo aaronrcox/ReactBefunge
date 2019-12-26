@@ -1,5 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { store } from './store';
 import * as actions from './store/actions';
 import './TextGrid.scss';
 
@@ -7,17 +8,22 @@ import './TextGrid.scss';
 /**
  * This component renders the text grid and handles
  */
-export default function TextGrid(props) {
+export const TextGrid = forwardRef((props, ref) => {
+
+    useImperativeHandle(ref, () => ({
+        test: () => console.log('hello world'),
+        getCells: () => store.getState().cells
+    }), []);
 
     const dispatch = useDispatch();
 
     const viewport = useSelector(state => state.viewport);
     const rowsArr = viewport.rows > 0 ? new Array(viewport.rows).fill('') : [];
 
-    const ref = useRef(null);
+    const elementRef = useRef(null);
     useEffect(() => {
-        const width = ref.current ? ref.current.offsetWidth : 0;
-        const height = ref.current ? ref.current.offsetHeight: 0;
+        const width = elementRef.current ? elementRef.current.offsetWidth : 0;
+        const height = elementRef.current ? elementRef.current.offsetHeight: 0;
 
         dispatch(actions.setupGrid(width, height, props.config.text, props.config.cellWidth, props.config.cellHeight));
 
@@ -58,15 +64,20 @@ export default function TextGrid(props) {
         dispatch(actions.scrollView(event.target.scrollLeft, event.target.scrollTop));
     }
 
+    const handleMouseLeave = (event) => {
+        dispatch(actions.setHoverCell({rowIndex: -1, colIndex: -1}));
+    }
+
     return(
-        <div ref={ref} className="text-grid-area"
+        <div ref={elementRef} className="text-grid-area"
             onScroll={handleScroll}
             draggable
             tabIndex='0'
             onKeyDown={handleKeyPress}
             onMouseMove={handleMouseMove} 
             onMouseUp={handleMouseUp}
-            onMouseDown={handleMouseDown} >
+            onMouseDown={handleMouseDown}
+            onMouseLeave={handleMouseLeave}>
             <div  className="text-grid">
 
                 {rowsArr.map((cr, rowIndex) =>
@@ -77,7 +88,8 @@ export default function TextGrid(props) {
             <div style={{width: 10000, height: 10000, position: 'absolute'}}></div>
         </div>
     );
-}
+});
+
 
 /**
  * Rhis component renders each row of cells
@@ -87,14 +99,12 @@ function TextGridRow(props) {
     const rowId = props.rowId;
     const cellHeight = useSelector(state => state.cellHeight);
     const viewport = useSelector(state => state.viewport);
-    const numCols = useSelector(state=> state.cols);
     const cellArr = viewport.cols > 0 ? new Array(viewport.cols).fill('') : [];
 
     return(<div className={'text-grid-row'} style={{height: cellHeight, maxHeight: cellHeight, minHeight: cellHeight}}>
         {cellArr.map((cell, colId) => {
             const colIndex = colId + viewport.xOffset;
-            const cellId = rowId * numCols + colIndex;
-            return (<TextGridCell key={'cell-'+colIndex} rowId={rowId} colId={colIndex} cellId={cellId}></TextGridCell>);
+            return (<TextGridCell key={'cell-'+rowId+'-'+colIndex} rowId={rowId} colId={colIndex} ></TextGridCell>);
         })}
     </div>);
 }
@@ -106,7 +116,6 @@ function TextGridCell(props) {
 
     const rowId = props.rowId;
     const colId = props.colId;
-    const cellId = props.cellId;
 
     const cell = useSelector(state => {
         if(rowId < state.cells.length && colId < state.cells[rowId].length)
@@ -174,7 +183,7 @@ function TextGridRangeSelection() {
     const top = (sri * (cellHeight-1)) + Math.min(height, 0);
     let style={ width: Math.abs(width), height: Math.abs(height), left, top };
 
-    if(width == 0 || height == 0)
+    if(width === 0 || height === 0)
         style.display = 'none';
 
     // render the selection grid.
@@ -188,7 +197,6 @@ function TextGridRangeSelection() {
 export function TextGridStatusBar() {
     const viewport = useSelector(state => state.viewport );
     const target = useSelector(state => state.target);
-    const cells = useSelector(state => state.cells);
     const selection = useSelector(state => state.selection);
 
     return(<div className="text-grid-status-bar">
@@ -211,90 +219,5 @@ export function TextGridStatusBar() {
     </div>);
 }
 
-/**
- * This is the terminal window
- * i got a bit lazy with this component and have not used the redux sotre
- * TODO: refactor
- */
-export function TextGridConsole() {
 
-    const [readOnlyPos, setReadOnlyPos] = useState(1);
-    let [consoleText, setConsoleText] = useState();
 
-    useEffect(() => {
-        clearConsole();
-        onEnter();
-    }, []);
-
-    const commands = {
-        clear: (args) => { clearConsole(); },
-        echo: (args) => { printLine(args.join(' ')); }
-    }
-
-    const submitLine = (line) => {
-        const lineItems = line.split(' ');
-
-        if(lineItems.length === 0)
-            return;
-
-        const [cmd, ...args] = lineItems;
-
-        if(commands[cmd] !== undefined){
-            commands[cmd](args);
-        }
-    }
-
-    const printLine = (value) => {
-        setConsoleText(consoleText + '\n ' + value); consoleText += '\n' + value; // HACK
-    }
-
-    const clearConsole = () => {
-        setConsoleText(''); consoleText = ''; // HACK
-    }
-
-    const onEnter = () => {
-        submitLine(consoleText.substr(readOnlyPos));
-        setConsoleText(consoleText + '\n> '); consoleText += '\n> '; // HACK
-        setReadOnlyPos(consoleText.length);
-    };
-
-    const handleKeyDown = (event) => {
-
-        if (event.key.length === 1) {
-            // allow printable characters
-        }
-        else if(event.key === 'Enter') {
-            onEnter();
-            event.preventDefault();
-        }
-        else if(event.key === 'Backspace') {
-            if(event.target.selectionStart <= readOnlyPos)
-                event.preventDefault();
-        }
-        else if(event.key === 'Delete') {
-            if(event.target.selectionStart < readOnlyPos)
-                event.preventDefault();
-        }
-    }
-
-    const handleSelect = (event) => {
-        if(event.target.selectionStart === readOnlyPos-1){
-            event.target.setSelectionRange(readOnlyPos, readOnlyPos);
-        }
-        else if(event.target.selectionStart < readOnlyPos-1){
-            event.target.setSelectionRange(event.target.value.length, event.target.value.length);
-        }
-    }
-
-    const handleChange = (event) => {
-        setConsoleText(event.target.value);
-    }
-
-    return(<div className="text-grid-console" style={{maxHeight: 200, height: 200, display: 'flex'}}>
-        <textarea wrap="off" spellCheck="false" value={consoleText}
-            onChange={handleChange}
-            onKeyDown={handleKeyDown}
-            onSelect={handleSelect}>
-        </textarea>
-    </div>);
-}

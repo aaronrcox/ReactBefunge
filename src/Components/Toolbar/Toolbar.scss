@@ -1,0 +1,53 @@
+
+$tg-bg-darker: rgb(23, 23, 23);
+$tg-bg: rgb(30, 30, 30);
+$tg-bg-lighter: rgb(37, 37, 38);
+$tg-bg-lightest: rgb(56, 56, 56);
+
+$tg-text-color: rgb(220, 220, 170);
+$tg-text-active: rgb(156, 220, 254);
+
+$tg-grid-selection-color: rgba(255, 255, 255, 0.1);
+$tg-grid-selection-border-color: rgba(220, 220, 170, 0.5);
+
+$tg-grid-arrow-size: 4px;
+
+$tg-grid-scroll-track-background: rgb(30, 30, 30);
+$tg-grid-scroll-thumb-background: rgba(255, 255, 255, 0.1);
+$tg-grid-scroll-thumb-hover-background: rgba(255, 255, 255, 0.2);
+
+.toolbar {
+    
+    box-sizing:content-box;
+    display: flex;
+    background-color: $tg-bg-lightest;
+    color: white;
+    border: 1px solid $tg-bg;
+    
+    width: 100%;
+    height: 24px;
+    line-height: 24px;
+    
+    font-size: smaller;
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+
+    user-select: none;
+    
+    ul {
+        display:block;
+        padding: 0px;
+        margin: 0px;
+
+        li {
+            display: inline-block;
+            margin-left: 10px;
+            padding: 0 10px;
+        }
+
+        .button:hover {
+            background: $tg-bg-lighter;
+            cursor: pointer;
+            color: $tg-text-active;
+        }
+    }
+}

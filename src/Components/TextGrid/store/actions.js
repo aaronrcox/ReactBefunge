@@ -86,8 +86,8 @@ export function setCellValue(payload) {
     return { type: SET_CELL_VALUE, payload};
 }
 
-export function setTargetCell(payload) {
-    return { type: SET_TARGET_CELL, payload};
+export function setTargetCell(rowIndex, colIndex) {
+    return { type: SET_TARGET_CELL, payload: { rowIndex, colIndex} };
 }
 
 export function moveTargetCell(x, y, invert) {
