@@ -1,5 +1,5 @@
 
-import { createStore, applyMiddleware } from 'redux'
+import { createStore, applyMiddleware, compose } from 'redux'
 import { createEpicMiddleware } from 'redux-observable';
 
 import {
@@ -9,7 +9,12 @@ import {
 
 const epicMiddleware = createEpicMiddleware();
 
-export const store = createStore(textGridReducer, applyMiddleware(epicMiddleware));
+
+const composeEnhancer = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+export const store = createStore(
+    textGridReducer, 
+    composeEnhancer(applyMiddleware(epicMiddleware))
+);
 
 epicMiddleware.run(textGridEpics);
 

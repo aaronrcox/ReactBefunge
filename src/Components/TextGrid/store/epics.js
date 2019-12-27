@@ -53,7 +53,6 @@ const onMouseMoved = (action, state) => action.pipe(
         const colIndex = Math.floor(mx / cellWidth) + viewport.xOffset;
         
         const hoverState = { rowIndex, colIndex };
-
         const newActions = [];
 
         // update the hover state
@@ -61,14 +60,12 @@ const onMouseMoved = (action, state) => action.pipe(
             newActions.push(actions.setHoverCell(hoverState));
         }
 
+        // If we move the mouse while the mouse is down, than we will
+        // either begin the selection, or expand the selection via the drag action
         if(state.value.selection.isMouseDown) {
             newActions.push(actions.drag());                   
         }
 
-        // If we move the mouse while the mouse is down, than we will
-        // either begin the selection, or expand the selection
-        
-        
         return newActions;
     })
 );
