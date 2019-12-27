@@ -25,7 +25,15 @@ export default class BefungeInterpreter {
         if(ci === null)
             return;
 
-        if( ci.i.includes(['>', '<', 'v', '^', '?']) ) {
+        if(this.stringMode) {
+            if( ci.i === '"') {
+                this.stringMode = false;
+            }
+            else {
+                this.stack.push(ci.i.charCodeAt(0));
+            }
+        }
+        else if( ci.i.includes(['>', '<', 'v', '^', '?']) ) {
             // direction modifiers already calculated
         }
         else if( ci.i >= '0' && ci.i <= '9') {
@@ -151,7 +159,7 @@ export default class BefungeInterpreter {
             // End of program
             ci.dirX = 0;
             ci.dirY = 0;
-            
+
             if(this.onProgramTerminateCb){
                 this.onProgramTerminateCb();
             }

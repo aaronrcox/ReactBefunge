@@ -1,6 +1,6 @@
 import * as actions from './actions';
 
-const initialState = {
+ const initialState = {
     cellWidth: 24,
     cellHeight: 24, 
     rows: 0,    // TODO: set to length of cells

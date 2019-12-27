@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { store } from './store';
+import { store } from '../../store';
 import * as actions from './store/actions';
 import './TextGrid.scss';
 

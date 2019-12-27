@@ -1,10 +1,10 @@
 
 import React, {useRef, forwardRef} from 'react';
-import { Provider } from 'react-redux';
-import { TextGrid, TextGridStatusBar, actions, store as textGridStore } from '../TextGrid';
+import { TextGrid, TextGridStatusBar, actions} from '../TextGrid';
 import { Terminal } from '../Terminal';
 import { Toolbar } from '../Toolbar';
 import BefungeInterpreter from './BefungeInterpreter';
+import { store as textGridStore } from '../../store';
 
 let befungeInterpreter = null;
 let runIntervilleTimer = null;
@@ -27,12 +27,11 @@ const BefungeIde = forwardRef((props, ref) => {
         const cells = textGridRef.current.getCells();
         befungeInterpreter = new BefungeInterpreter(cells);
         befungeInterpreter.onInstructionExecuted((li, ni) => {
-            console.log(`L-${li.x}-${li.y}-${li.i} \t\t N-${ni.x}-${ni.y}-${ni.i}`);
+            //console.log(`L-${li.x}-${li.y}-${li.i} \t\t N-${ni.x}-${ni.y}-${ni.i}`);
             textGridStore.dispatch(actions.setTargetCell( ni.y, ni.x ));
             textGridStore.dispatch(actions.setTypeingDir( ni.dirX, ni.dirY ));
         });
         befungeInterpreter.onConsoleOut(text => {
-            debugger;
             console.log(text);
         });
         befungeInterpreter.onProgramTerminate(() => {
@@ -53,7 +52,7 @@ const BefungeIde = forwardRef((props, ref) => {
         initProgram();
         runIntervilleTimer = setInterval(() => {
             stepProgram();
-        }, 100)
+        }, 50);
     };
 
     const stepProgram = () => {
@@ -63,7 +62,8 @@ const BefungeIde = forwardRef((props, ref) => {
     const terminalCommands = {
         'set-cursor-pos': (args) => { setCursorPos(parseInt(args[0]), parseInt(args[1])); },
         'run': (args) => { runProgram() },
-        'next': (args) => { stepProgram(); }
+        'next': (args) => { stepProgram(); },
+        'stack': (args) => { console.log( befungeInterpreter.stack); }
     };
 
 //     const prog = 
@@ -99,20 +99,15 @@ v,,,,,,"World!"<
     ];
     
     return(
-    <Provider store={textGridStore}>
-        <div style={{display: 'flex', flexDirection: 'row',  height: '100%'}}>
-            
-            <div className="text-grid-container" style={{display: 'flex', flex: 1, flexDirection: 'column', height: '100%'}}>
-                <Toolbar items={toolbar}></Toolbar>
-                <TextGrid ref={textGridRef} config={config} ></TextGrid>
-                
-                <Terminal commands={terminalCommands}></Terminal>
-                <TextGridStatusBar></TextGridStatusBar>
-            </div>
-            {/* <div style={{minWidth: 300, display: 'flex'}}> test </div> */}
-        </div>
+    <div style={{display: 'flex', flexDirection: 'row',  height: '100%'}}>
         
-    </Provider>);
+        <div className="text-grid-container" style={{display: 'flex', flex: 1, flexDirection: 'column', height: '100%'}}>
+            <Toolbar items={toolbar}></Toolbar>
+            <TextGrid ref={textGridRef} config={config} ></TextGrid>
+            <Terminal commands={terminalCommands}></Terminal>
+            <TextGridStatusBar></TextGridStatusBar>
+        </div>
+    </div>);
 });
 
 export default BefungeIde;

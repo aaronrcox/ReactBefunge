@@ -1,6 +1,4 @@
 
-import {store, actions} from './store'
-
-export * from './TextGrid';
+import { actions } from './store'
 export { actions };
-export { store };
+export * from './TextGrid';

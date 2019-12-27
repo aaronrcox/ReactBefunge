@@ -9,8 +9,6 @@ const setupGrid = (action, state) => action.pipe(
     ofType(actions.SETUP_GRID),
     mergeMap((action) => {
 
-        console.log(action);
-
         const width = action.payload.width;
         const height = action.payload.height;
         const text = action.payload.text;

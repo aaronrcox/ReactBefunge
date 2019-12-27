@@ -9,8 +9,8 @@ export function Toolbar(props) {
 
     return(<div className="toolbar">
         <ul>
-            {items.map(item => {
-                return(<li className={item.classNames} onClick={item.onClick}>{item.text}</li>);
+            {items.map( (item, index) => {
+                return(<li key={'tbitem-'+index} className={item.classNames} onClick={item.onClick}>{item.text}</li>);
             })}
         </ul>
     </div>);
