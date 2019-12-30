@@ -1,15 +1,24 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, forwardRef, useImperativeHandle} from 'react';
 import './Terminal.scss';
+import { none } from '../TextGrid/store/actions';
 
 /**
  * This is the terminal window
  * i got a bit lazy with this component and have not used the redux sotre
  * TODO: refactor
  */
-export function Terminal(props) {
+export const Terminal = forwardRef((props, ref) => {
 
     let [readOnlyPos, setReadOnlyPos] = useState(1);
     let [consoleText, setConsoleText] = useState('');
+
+    useImperativeHandle(ref, () => ({
+        print: (text) => {
+            const newText = consoleText + text;
+            setConsoleText(newText);
+            setReadOnlyPos((consoleText + text).length);
+        }
+    }), [consoleText]);
 
     const commands = {
         clear: (args) => { clearConsole(); },
@@ -18,6 +27,12 @@ export function Terminal(props) {
     };
 
     const submitLine = (line) => {
+        
+        // the onEnter method should return true to prevent default behaviour
+        if( props.onEnter && props.onEnter(line) ) {
+            return;
+        }
+        
         const lineItems = line.split(' ');
 
         if(lineItems.length === 0)
@@ -35,6 +50,7 @@ export function Terminal(props) {
     const printLine = (value) => {
         setConsoleText(consoleText + '\n ' + value); consoleText += '\n' + value; // HACK
     }
+
 
     let wasCleared = false;
     const clearConsole = () => {
@@ -90,11 +106,12 @@ export function Terminal(props) {
         setReadOnlyPos(2);
     }, []);
 
-    return(<div className="terminal" style={{maxHeight: 200, height: 200, display: 'flex'}}>
+    return(<div className="terminal" style={{maxHeight: 200, height: 200, display: 'flex', border: props.disabled ? '10px solid red' : none}}>
+        
         <textarea wrap="off" spellCheck="false" value={consoleText}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             onSelect={handleSelect}>
         </textarea>
     </div>);
-}
+});

@@ -10,13 +10,22 @@ export default class BefungeInterpreter {
         this.onInstructionExecutedCb = null;
         this.onConsoleOutCb = null;
         this.onProgramTerminateCb = null;
+        this.onRequestConsoleInputCb = null;
+        this.onStackChangeCb = null;
 
         this.currentInstruction = null;
         this.nextInstruction = { x: 0, y: 0, i: program[0][0], ...this.getInstructionDir(1, 0, program[0][0]) };
         this.stringMode = false;
+
+        this.waitingForInput = false;
+
+        this.inputStack = [];
     }
 
     step() {
+
+        if(this.waitingForInput)
+            return;
         
         this.currentInstruction = this.nextInstruction;
         let ci = this.currentInstruction;
@@ -150,10 +159,31 @@ export default class BefungeInterpreter {
         else if( ci.i === '&' ) {
             // Ask user for a number and push it
             // TODO: ask the user for a number
+            if(this.inputStack.length === 0) {
+                this.waitingForInput = true;
+                if( this.onRequestConsoleInputCb ) {
+                    this.onRequestConsoleInputCb();
+                }
+                return;
+            }
+            else {
+                const val = this.inputStack.shift();
+                this.stack.push(parseInt(val));
+            }
         }
         else if( ci.i === '~' ) {
             // Ask user for a character and push its ASCII value
-            // TODO: ask the user for a number
+            if(this.inputStack.length === 0) {
+                this.waitingForInput = true;
+                if( this.onRequestConsoleInputCb ) {
+                    this.onRequestConsoleInputCb();
+                }
+                return;
+            }
+            else {
+                const val = this.inputStack.shift();
+                this.stack.push(val.charCodeAt(0));
+            }
         }
         else if( ci.i === '@') {
             // End of program
@@ -163,6 +193,10 @@ export default class BefungeInterpreter {
             if(this.onProgramTerminateCb){
                 this.onProgramTerminateCb();
             }
+        }
+
+        if(this.onStackChangeCb) {
+            this.onStackChangeCb();
         }
 
         const ni = this.getNextInstruction();
@@ -175,11 +209,14 @@ export default class BefungeInterpreter {
 
     getNextInstruction() {
         const ci = this.currentInstruction;
-        const nx = ci.x + ci.dirX;
-        const ny = ci.y + ci.dirY;
+        let nx = ci.x + ci.dirX;
+        let ny = ci.y + ci.dirY;
 
-        if( nx < 0 || nx >= this.numCols || ny < 0 || ny >= this.numRows )
-            return null;
+        // wrap the instructions
+        if( ny < 0 ) ny = this.numRows - 1;
+        if( nx < 0 ) nx = this.numCols - 1;
+        if( ny >= this.numRows ) ny = 0;
+        if( nx >= this.numCols ) nx = 0;
         
         const instruction = (nx < this.program[ny].length) ? this.program[ny][nx] : '';
         const instructionDir = this.getInstructionDir(ci.dirX, ci.dirY, instruction);
@@ -221,13 +258,26 @@ export default class BefungeInterpreter {
         return {dirX, dirY};
     }
 
+    input(val) {
+        this.inputStack.push(val);
+        this.waitingForInput = false;
+        
+    }
+
     onInstructionExecuted(callback) {
         this.onInstructionExecutedCb = callback;
     }
     onConsoleOut(callback) {
         this.onConsoleOutCb = callback;
     }
+    onRequestConsoleInput(callback) {
+        this.onRequestConsoleInputCb = callback;
+    }
+
     onProgramTerminate(callback) {
         this.onProgramTerminateCb = callback;
+    }
+    onStackChange(callback) {
+        this.onStackChangeCb = callback;
     }
 }

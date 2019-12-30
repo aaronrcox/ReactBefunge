@@ -68,6 +68,13 @@ export const TextGrid = forwardRef((props, ref) => {
         dispatch(actions.setHoverCell({rowIndex: -1, colIndex: -1}));
     }
 
+    if( elementRef.current ) {
+        // set the scrollposition
+        // this.refs.messages.scrollTop = this.refs.messages.scrollHeight
+        elementRef.current.scrollLeft = viewport.xOffset * props.config.cellWidth;
+        elementRef.current.scrollTop = viewport.yOffset * props.config.cellHeight;
+    }
+
     return(
         <div ref={elementRef} className="text-grid-area"
             onScroll={handleScroll}
@@ -150,7 +157,9 @@ function TextGridCell(props) {
     }
 
     return(<span className={getClassNames()}  style={{width: cellWidth, maxWidth: cellWidth, minWidth: cellWidth}} >
-        {cell}
+        <div className="text-grid-cell-content">
+            {cell}
+        </div>
     </span>);
 }
 

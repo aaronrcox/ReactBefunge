@@ -86,7 +86,8 @@ export function reducer(state = initialState, action) {
                 endRowIndex: target.rowIndex,
                 endColIndex: target.colIndex
             };
-            return {...state, target, selection };
+            const viewport = calculateViewport(state.viewport, target);
+            return {...state, viewport, target, selection };
         }
 
         /**
@@ -96,7 +97,7 @@ export function reducer(state = initialState, action) {
             const modifier = action.payload.invert ? -1 : 1;
             const xDir = action.payload && action.payload.x !== undefined ? action.payload.x : state.target.dir.x;
             const yDir = action.payload && action.payload.y !== undefined ? action.payload.y : state.target.dir.y;
-            const target = {...state.target, ..._moveTarget(state, state.target, xDir * modifier, yDir * modifier) };
+            const target = {...state.target, ..._moveTarget(state.target, xDir * modifier, yDir * modifier) };
             const selection = {
                 ...state.selection,
                 startRowIndex: target.rowIndex,
@@ -104,7 +105,10 @@ export function reducer(state = initialState, action) {
                 endRowIndex: target.rowIndex,
                 endColIndex: target.colIndex
             };
-            return { ...state, target, selection };
+
+            const viewport = calculateViewport(state.viewport, target);
+
+            return { ...state, viewport, target, selection };
         }
 
 
@@ -284,7 +288,7 @@ function _fillArrCells(arr, x, y) {
         arr[y].push('');
 }
 
-function _moveTarget(state, target, dx, dy) {
+function _moveTarget(target, dx, dy) {
 
     let rowIndex = target.rowIndex + dy;
     let colIndex = target.colIndex + dx;
@@ -294,4 +298,32 @@ function _moveTarget(state, target, dx, dy) {
     colIndex = Math.max(colIndex, 0);
 
     return { rowIndex, colIndex };
+}
+
+function calculateViewport(viewport, target) {
+    const v = {...viewport};
+
+    const vLeft = v.xOffset;
+    const vRight = v.xOffset + v.cols - 2;
+    const vTop = v.yOffset;
+    const vBottom = v.yOffset + v.rows - 1;
+
+    // if the target is within the viewport, dont change
+    if( target.colIndex >= vLeft && target.colIndex <= vRight &&
+        target.rowIndex >= vBottom && target.rowIndex <= vTop )
+        return viewport;
+
+    if( target.colIndex < vLeft ) 
+        v.xOffset = target.colIndex;
+
+    if(  target.colIndex >= vRight ) 
+        v.xOffset = (target.colIndex - v.cols) + 3;
+
+    if( target.rowIndex < vTop ) 
+        v.yOffset = target.rowIndex;
+
+    if( target.rowIndex >= vBottom ) 
+        v.yOffset = (target.rowIndex - v.rows) + 2;
+
+    return v;
 }
