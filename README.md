@@ -3,6 +3,16 @@ This is a quick side projet to create a simple IDE for the befunge 93 esoteric p
 
 https://en.wikipedia.org/wiki/Befunge
 
+ # Running the project
+ - clone the repo
+ - run: `npm install`
+ - run: `npm start`
+ - view in browser http://localhost:3000/
+
+ ## deploy
+run: `npm run deploy` <br/>
+This will build a production version of the project that is pushed to the gh-pages branch
+
 ## Demo
 Live demo project is published to github pages:<br/>https://aaronrcox.github.io/ReactBefunge 
 
@@ -20,11 +30,7 @@ Live demo project is published to github pages:<br/>https://aaronrcox.github.io/
  - React-Redux
  - Redux-Observables
 
- # Running the project
- - clone the repo
- - run: `npm install`
- - run: `npm start`
- - view in browser http://localhost:3000/
+
 
 
 # TODO:
@@ -50,4 +56,3 @@ Live demo project is published to github pages:<br/>https://aaronrcox.github.io/
 # Other
  - provide alternative TextGrid component rendered with canvas instead of rows/cells, this should speed up rendering / display a lot
 
- 
