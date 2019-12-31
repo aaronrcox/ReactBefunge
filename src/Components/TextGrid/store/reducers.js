@@ -44,7 +44,6 @@ import * as actions from './actions';
 export function reducer(state = initialState, action) {
 
     switch(action.type) {
-
         /**
          * 
          */
@@ -184,7 +183,7 @@ export function reducer(state = initialState, action) {
             const eci = Math.max(state.selection.startColIndex, state.selection.endColIndex);
 
             for(let r=sri; r<=eri && r < cells.length; r++){
-                for(let c=sci; c<=eci && c < cells[r].length; c++) {
+                for(let c=sci; c<eci && c < cells[r].length; c++) {
                     cells[r][c] = '';
                 }
             }
@@ -274,6 +273,62 @@ export function reducer(state = initialState, action) {
             target.dir = { ...action.payload };
             return {...state, target };
             //return state;
+        }
+
+        case actions.PASTE: {
+
+            const data = action.payload.replace(/\r\n/g, "\r").replace(/\n/g, "\r").split(/\r/).map(line => line.split(''));
+            
+            const cells = state.cells;
+
+            const sx = state.selection.startColIndex;
+            const sy = state.selection.startRowIndex;
+            
+            // number of rows / columns pasted
+            const numCols = Math.max(...data.map(d => d.length));
+            const numRows = data.length;
+
+
+            // fill the cells with the paste data
+            for(let y = 0; y<data.length; y++) {
+                for(let x=0; x<data[y].length; x++) {
+                    const xi = x + sx;
+                    const yi = y + sy;
+                    _fillArrCells(cells, xi, yi);
+                    cells[yi][xi] = data[y][x];
+                }
+            }
+
+            // update the selection area
+            const selection = {
+                ...state.selection,
+                startRowIndex: sy,
+                startColIndex: sx,
+                endRowIndex: sy + numRows - 1,
+                endColIndex: sx + numCols
+            };
+
+            return {...state, cells, selection };
+        }
+
+        case actions.FILL_SELECTION: {
+            const cells = state.cells;
+            const sx = state.selection.startColIndex;
+            const sy = state.selection.startRowIndex;
+            const ex = state.selection.endColIndex;
+            const ey = state.selection.endRowIndex;
+            const xMin = Math.min(sx, ex);
+            const yMin = Math.min(sy, ey);
+            const xMax = Math.max(sx, ex);
+            const yMax = Math.max(sy, ey);
+            // fill the cells with the paste data
+            for(let y=yMin; y<=yMax; y++) {
+                for(let x=xMin; x<xMax; x++) {
+                    _fillArrCells(cells, x, y);
+                    cells[y][x] = action.payload;
+                }
+            }
+            return {...state, cells };
         }
 
         /**

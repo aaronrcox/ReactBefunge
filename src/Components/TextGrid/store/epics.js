@@ -84,11 +84,21 @@ const onKeyDown = (action, state) => action.pipe(
         }
 
         if(key.length === 1) {
-            return [
-                ...cbActions,
-                actions.setCellValue({ rowIndex, colIndex, value: key }),
-                actions.moveTargetCell(),
-            ];
+            if( state.value.textGrid.selection.startRowIndex !== state.value.textGrid.selection.endRowIndex ||
+                state.value.textGrid.selection.startColIndex !== state.value.textGrid.selection.endColIndex  ) {
+
+                    // fill the slection area
+                    return [actions.fillSelection(key)];
+            }
+            else {
+                // insert the character at the cursor positon
+                return [
+                    ...cbActions,
+                    actions.setCellValue({ rowIndex, colIndex, value: key }),
+                    actions.moveTargetCell(),
+                ];
+            }
+            
         }
         else {
             if( key === 'Tab' ) {
@@ -150,8 +160,56 @@ const onKeyDown = (action, state) => action.pipe(
     })
 );
 
+const onCopy = (action, state) => action.pipe(
+    ofType(actions.COPY),
+    mergeMap((action) => {
+        
+        const s = _getSelectedText(state);
+        navigator.clipboard.writeText(s)
+
+
+        return [];
+
+    })
+);
+
+const onCut = (action, state) => action.pipe(
+    ofType(actions.CUT),
+    mergeMap((action) => {
+        const s = _getSelectedText(state);
+        navigator.clipboard.writeText(s)
+        return [actions.clearSelectionArea()]
+    })
+);
+
 export const epics = combineEpics(
     setupGrid,
     onMouseMoved,
-    onKeyDown
+    onKeyDown,
+    onCopy,
+    onCut
 );
+
+
+
+function _getSelectedText(state) {
+    const cells = state.value.textGrid.cells;
+    const sx = state.value.textGrid.selection.startColIndex;
+    const sy = state.value.textGrid.selection.startRowIndex;
+    const ex = state.value.textGrid.selection.endColIndex;
+    const ey = state.value.textGrid.selection.endRowIndex + 1;
+    let s = '';
+    for(let y=sy; y<ey; y++){
+        if(y >= ey){
+            s += '\n';
+            continue;
+        }
+        for(let x=sx; x<ex && x<cells[y].length ; x++) {
+            s += cells[y][x];
+        }
+
+        if(y <ey-1)
+            s += '\n';
+    }
+    return s;
+}

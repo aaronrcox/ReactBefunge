@@ -18,9 +18,7 @@ export const TextGrid = forwardRef((props, ref) => {
     const dispatch = useDispatch();
 
     const vRows = useSelector(state => state.textGrid.viewport.rows);
-    const vXOffset = useSelector(state => { 
-        return state.textGrid.viewport.xOffset;
-    });
+    const vXOffset = useSelector(state => state.textGrid.viewport.xOffset);
     const vYOffset = useSelector(state => state.textGrid.viewport.yOffset);
     const rowsArr = vRows > 0 ? new Array(vRows).fill('') : [];
 
@@ -30,6 +28,17 @@ export const TextGrid = forwardRef((props, ref) => {
         const height = elementRef.current ? elementRef.current.offsetHeight: 0;
 
         dispatch(actions.setupGrid(width, height, props.config.text, props.config.cellWidth, props.config.cellHeight));
+
+        const onPasteEvent = document.addEventListener('paste', (event) => {
+            // TODO: paste text at cursor location
+            dispatch(actions.paste(event.clipboardData.getData('text')));
+            //console.log("PASTE");
+            //console.log(event.clipboardData.getData('text'));
+        });
+
+        return () => {
+            document.removeEventListener(onPasteEvent);
+        };
 
     }, [props, dispatch]);
 
@@ -41,35 +50,70 @@ export const TextGrid = forwardRef((props, ref) => {
         let mouseY = event.clientY - bounds.top;
         
         dispatch(actions.mouseMoved({mouseX, mouseY}));
-    }
+    };
 
     const handleKeyPress = (event) => {
-        event.preventDefault();
-        dispatch(actions.keyDown({ 
-            key: event.key, 
-            isShiftDown: event.shiftKey, 
-            callback: props.config.events.onKeyDown
-        }));
-    }
+        
+        if( event.ctrlKey ){
+            const key = event.key.toLowerCase();
+
+            if( key === 'v') {
+                // Paste event - do nothing, this will allow the onPaste event to fire
+            }
+            else if( key === 'c') {
+                dispatch( actions.copy());
+                event.preventDefault();
+            }
+            else if( key === 'x' ) {
+                dispatch( actions.cut());
+                event.preventDefault();
+            }
+            
+        }
+        else {
+            event.preventDefault();
+            dispatch(actions.keyDown({ 
+                key: event.key, 
+                isShiftDown: event.shiftKey, 
+                callback: props.config.events.onKeyDown
+            }));
+        }
+        
+    };
 
     const handleMouseDown = (event) => {
         event.preventDefault();
         event.currentTarget.focus();
         dispatch(actions.mouseDown());
-    }
+    };
 
     const handleMouseUp = (event) => {
         event.preventDefault();
         dispatch(actions.mouseUp());
-    }
+    };
 
     const handleScroll = (event) => {
         event.preventDefault();
         dispatch(actions.scrollView(event.target.scrollLeft, event.target.scrollTop));
-    }
+    };
 
     const handleMouseLeave = (event) => {
         dispatch(actions.setHoverCell({rowIndex: -1, colIndex: -1}));
+    };
+
+    const handleCopy = (event) => {
+        console.log("COPY");
+        event.preventDefault();
+    };
+
+    const handleCut = (event) => {
+        console.log("CUT");
+        event.preventDefault();
+    };
+
+    const handlePaste = (event) => {
+        console.log("PASTE");
+        event.preventDefault();
     }
 
     if( elementRef.current ) {

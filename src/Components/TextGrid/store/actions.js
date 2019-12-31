@@ -29,6 +29,12 @@ export const CLEAR_SELECTION_AREA = '[TextGrid] Clear Selection';
 
 export const SET_TYPEING_DIRECTION = '[TextGrid] Set Text Direction';
 
+export const FILL_SELECTION = '[TextGrid] Fill Selection';
+
+export const PASTE = '[TextGrid] Paste';
+export const COPY = '[TextGrid] Copy';
+export const CUT = '[TextGrid] Cut';
+
 // TODO ACTIONS:
 // - COPY SELECTION
 // - CUT SELECTION
@@ -122,4 +128,20 @@ export function deleteCol(rowIndex, colIndex) {
 
 export function setTypeingDir(x, y) {
     return { type: SET_TYPEING_DIRECTION, payload: {x, y} };
+}
+
+export function paste(text) {
+    return { type: PASTE, payload: text };
+}
+
+export function copy(text) {
+    return { type: COPY, payload: text };
+}
+
+export function cut(text) {
+    return { type: CUT, payload: text };
+}
+
+export function fillSelection(text) {
+    return { type: FILL_SELECTION, payload: text };
 }
