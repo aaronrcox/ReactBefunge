@@ -1,0 +1,76 @@
+
+// TODO: Refactor to central location when updating thems
+$tg-bg-darker: rgb(23, 23, 23);
+$tg-bg: rgb(30, 30, 30);
+$tg-bg-lighter: rgb(37, 37, 38);
+$tg-bg-lightest: rgb(56, 56, 56);
+
+$tg-text-color: rgb(220, 220, 170);
+$tg-text-active: rgb(156, 220, 254);
+
+$tg-grid-selection-color: rgba(255, 255, 255, 0.1);
+$tg-grid-selection-border-color: rgba(220, 220, 170, 0.5);
+
+$tg-grid-arrow-size: 4px;
+
+$tg-grid-scroll-track-background: rgb(30, 30, 30);
+$tg-grid-scroll-thumb-background: rgba(255, 255, 255, 0.1);
+$tg-grid-scroll-thumb-hover-background: rgba(255, 255, 255, 0.2);
+
+.befungeIde {
+
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+
+    .main {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+    }
+    
+    .asside {
+        display: flex;
+        flex-direction: column;
+        
+        width: 300px;
+        background-color: $tg-bg-lighter;
+
+        font-size: smaller;
+
+        .asside-header {
+            font-weight: bold;
+            color: white;
+            padding: 3px;
+            padding-left: 10px;
+            background-color: $tg-bg-lightest;
+            border-top: 1px solid $tg-bg-darker;
+            border-bottom: 1px solid $tg-bg-darker;
+            
+        }
+        .asside-section {
+            font-weight: bold;
+            padding: 10px;
+            font-weight: normal;
+            color: white;
+            background-color: $tg-bg-lighter;
+        }
+    }
+
+    .befunge-stack-view {
+        margin: 0px;
+        padding: 0px;
+
+        li {
+            list-style: none;
+            display: inline-block;
+            width: 100%;
+            padding: 5px;
+            border-bottom: 1px solid $tg-bg-darker;
+        }
+
+        li:hover {
+            background-color: $tg-bg-darker;
+        }
+    }
+}

@@ -1,68 +1,53 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# React Befunge
+This is a quick side projet to create a simple IDE for the befunge 93 esoteric programming language.
 
-## Available Scripts
+https://en.wikipedia.org/wiki/Befunge
 
-In the project directory, you can run:
+## Demo
+Live demo project is published to github pages:<br/>https://aaronrcox.github.io/ReactBefunge 
 
-### `yarn start`
+# Screenshot
+![alt text](./public/screenshots/screenshot01.png "Befunge IDE")
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+## Features:
+ - Custom grid based text editor
+ - Emulated terminal/console
+ - Run / Step through each instruction
 
-### `yarn test`
+## Tools / Libraries:
+ - React
+ - React-Redux
+ - Redux-Observables
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+ # Running the project
+ - clone the repo
+ - run: `npm install`
+ - run: `npm start`
+ - view in browser http://localhost:3000/
 
-### `yarn build`
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+# TODO:
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
+## Features
+ - Add Copy / Paste support to "TextGrid" component
+ - Add asside panel with expandable content to allow for options, debugging info etc.
+ - Replace window.prompt with custom input modal when executing befunge instruction
+ - Add 'readonly' mode to terminal to allow for program output without human interferance
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+ ## Refactor
+ - Migrate befungeIde state to redux - this should reduce some of the hacky code
+ - Migrate befungeInterpreter state to redux - this should reduce some of the hacky code and reduce number of re-rendes
+ - Move befunge asside to be between the toolbar and statusbar
+ - Smooth scroll - currently scrolling adjusts display offcets per cell and feels a little clunky / laggy.
+ - Styleing - use css variables that can be changed at runtime to allow for theming - alternativelly, refactor to different styleing solutions.
+ 
 
-### `yarn eject`
+ ## Bugs
+ - Each befunge instruction step causes everything to re-render
+ - TextGrid selection with arrow keys, the cursor position is not set correctly compared to selection with mouse, which is correct.
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+# Other
+ - provide alternative TextGrid component rendered with canvas instead of rows/cells, this should speed up rendering / display a lot
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
-
-### Analyzing the Bundle Size
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
-
-### Making a Progressive Web App
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
-
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `yarn build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+ 

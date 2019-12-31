@@ -29,13 +29,6 @@ $tg-grid-scroll-thumb-hover-background: rgba(255, 255, 255, 0.2);
     outline: none;
 }
 
-.text-grid-container {
-    .terminal-base {
-        display: block;
-        width: 100%;
-    }
-}
-
 .text-grid-area {
     width: 100%;
     height: 100%;
@@ -43,7 +36,9 @@ $tg-grid-scroll-thumb-hover-background: rgba(255, 255, 255, 0.2);
     position: relative;
     overflow: auto;
     display: flex;
+    flex-wrap: nowrap;
     flex: 1;
+    
 }
 
 .text-grid-status-bar {
@@ -75,6 +70,7 @@ $tg-grid-scroll-thumb-hover-background: rgba(255, 255, 255, 0.2);
 
 .text-grid {
     position: sticky;
+    display: block;
     box-sizing:content-box;
     left: 0px;
     top: 0px;
@@ -90,6 +86,7 @@ $tg-grid-scroll-thumb-hover-background: rgba(255, 255, 255, 0.2);
     font-size: smaller;
     font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 
+    
     :focus {
         outline: none;
     }
@@ -106,10 +103,10 @@ $tg-grid-scroll-thumb-hover-background: rgba(255, 255, 255, 0.2);
     .text-grid-row {
         box-sizing: border-box;
         display: block;
-        flex-direction: row;
 
         overflow: hidden;
         width: 100%;
+        
         // white-space: nowrap;
 
         margin-top: -1px;

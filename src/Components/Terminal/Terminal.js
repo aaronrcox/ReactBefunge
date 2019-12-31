@@ -12,14 +12,6 @@ export const Terminal = forwardRef((props, ref) => {
     let [readOnlyPos, setReadOnlyPos] = useState(1);
     let [consoleText, setConsoleText] = useState('');
 
-    useImperativeHandle(ref, () => ({
-        print: (text) => {
-            const newText = consoleText + text;
-            setConsoleText(newText);
-            setReadOnlyPos((consoleText + text).length);
-        }
-    }), [consoleText]);
-
     const commands = {
         clear: (args) => { clearConsole(); },
         echo: (args) => { printLine(args.join(' ')); },
@@ -44,7 +36,7 @@ export const Terminal = forwardRef((props, ref) => {
             commands[cmd](args);
         }
 
-        return false;
+        return;
     }
 
     const printLine = (value) => {
@@ -105,6 +97,19 @@ export const Terminal = forwardRef((props, ref) => {
         setConsoleText('> ');
         setReadOnlyPos(2);
     }, []);
+
+    useImperativeHandle(ref, () => ({
+        print: (text) => {
+            const newText = consoleText + text;
+            setConsoleText(newText);
+            setReadOnlyPos((consoleText + text).length);
+        },
+        submitInput() {
+            submitLine('');
+            setConsoleText(consoleText + '\n> '); consoleText += '\n> '; // HACK
+            setReadOnlyPos(consoleText.length);
+        }
+    }), [submitLine, consoleText]);
 
     return(<div className="terminal" style={{maxHeight: 200, height: 200, display: 'flex', border: props.disabled ? '10px solid red' : none}}>
         

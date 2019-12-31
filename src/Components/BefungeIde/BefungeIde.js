@@ -6,6 +6,7 @@ import { Toolbar } from '../Toolbar';
 import BefungeInterpreter from './BefungeInterpreter';
 import { store as textGridStore } from '../../store';
 
+import './BefungeIde.scss';
 
 let runIntervilleTimer = null;
 
@@ -13,6 +14,10 @@ const BefungeIde = forwardRef((props, ref) => {
 
     let [befungeInterpreter, setBefungeInterpreter] = useState(null);
     let [befungeStackStr, setBefungeStackStr] = useState([]);
+    let befungeStack = []; 
+    try { befungeStack = JSON.parse(befungeStackStr); }
+    catch(err){}
+    
 
     const handleKeyPress = (store, key) => {
         if( key === 'v') return { preventDefault: false, actions: [actions.setTypeingDir( 0, 1)] };
@@ -48,7 +53,16 @@ const BefungeIde = forwardRef((props, ref) => {
         });
         interpreter.onProgramTerminate(() => {
             clearInterval(runIntervilleTimer);
+            runIntervilleTimer = null;
             setBefungeInterpreter(null);
+            terminalRef.current.print('\nProgram Terminated!\n');
+            terminalRef.current.submitInput();
+        });
+        interpreter.onRequestConsoleInput(() => {
+            const input = window.prompt("Enter a value", "");
+            if(befungeInterpreter && befungeInterpreter.waitingForInput && input)
+                befungeInterpreter.input(input);
+
         });
 
         befungeInterpreter = interpreter; // hack
@@ -88,18 +102,18 @@ const BefungeIde = forwardRef((props, ref) => {
             befungeInterpreter.input(input);
     }
 
-// const prog = 
-// `>              v
-// v  ,,,,,"Hello"<
-// >48*,          v
-// v,,,,,,"World!"<
-// >25*,@`;
+const prog = 
+`>              v
+v  ,,,,,"Hello"<
+>48*,          v
+v,,,,,,"World!"<
+>25*,@`;
 
 // const prog = 
 // `64+"!dlroW ,olleH">:#,_@`;
 
-const prog = 
-`~:1+!#@_,`;
+// const prog = 
+// `~:1+!#@_,`;
 
     const config = {
         cellWidth: 32,
@@ -114,26 +128,40 @@ const prog =
     const textGridRef = useRef();
     const terminalRef = useRef();
 
-    const toolbar = [
-        { text: 'Run', classNames: 'button', onClick: () => { runProgram() } },
-        { text: 'Stop', classNames: 'button', onClick: () => { setBefungeInterpreter(null); } },
-        { text: '   ', classNames: '', onClick: () => { }},
-        { text: 'Debug', classNames: 'button', onClick: () => { debugProgram() } },
-        { text: 'Step', classNames: 'button', onClick: () => { stepProgram() } }
-    ];
+    const toolbar = [];
+    if( befungeInterpreter === null ) {
+        toolbar.push({ text: 'Run', classNames: 'button', onClick: () => runProgram() });
+        toolbar.push({ text: 'Debug', classNames: 'button', onClick: () => debugProgram() },);
+    }
+    else {
+        toolbar.push({ text: 'Stop', classNames: 'button', onClick: () => setBefungeInterpreter(null) });
+        toolbar.push({ text: 'Step', classNames: 'button', onClick: () => stepProgram() });
+    }
+
     
     return(
-    <div style={{display: 'flex', flexDirection: 'row',  height: '100%'}}>
-        <div style={{ display: 'flex', felxDirection: 'column', flex: 1, maxWidth: 300, backgroundColor: 'black', color: 'white'}}>
-            { befungeStackStr }
-        </div>
-        <div className="text-grid-container" style={{display: 'flex', flex: 1, flexDirection: 'column', height: '100%'}}>
+    <div className="befungeIde">
+        
+        <div className="main">
             <Toolbar items={toolbar}></Toolbar>
             <TextGrid ref={textGridRef} config={config} ></TextGrid>
             <Terminal ref={terminalRef} commands={terminalCommands} onEnter={terminalOnEnter}></Terminal>
             <TextGridStatusBar></TextGridStatusBar>
         </div>
-        
+        <div className="asside">
+            <div className="asside-header">
+                Stack
+            </div>
+            <div className="asside-section">
+                <ul class="befunge-stack-view">
+                    { befungeStack.reverse().map(item => <li>
+                        <span style={{float:'left'}}>{item}</span>
+                        <span style={{float:'right'}}>{String.fromCharCode(item)}</span>
+                    </li> ) }
+                </ul>
+            
+            </div>
+        </div>
     </div>);
 });
 

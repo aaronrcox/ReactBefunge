@@ -17,8 +17,10 @@ export const TextGrid = forwardRef((props, ref) => {
 
     const dispatch = useDispatch();
 
-    const viewport = useSelector(state => state.viewport);
-    const rowsArr = viewport.rows > 0 ? new Array(viewport.rows).fill('') : [];
+    const vRows = useSelector(state => state.viewport.rows);
+    const vXOffset = useSelector(state => state.viewport.xOffset);
+    const vYOffset = useSelector(state => state.viewport.yOffset);
+    const rowsArr = vRows > 0 ? new Array(vRows).fill('') : [];
 
     const elementRef = useRef(null);
     useEffect(() => {
@@ -71,9 +73,11 @@ export const TextGrid = forwardRef((props, ref) => {
     if( elementRef.current ) {
         // set the scrollposition
         // this.refs.messages.scrollTop = this.refs.messages.scrollHeight
-        elementRef.current.scrollLeft = viewport.xOffset * props.config.cellWidth;
-        elementRef.current.scrollTop = viewport.yOffset * props.config.cellHeight;
+        elementRef.current.scrollLeft = vXOffset * props.config.cellWidth;
+        elementRef.current.scrollTop = vYOffset * props.config.cellHeight;
     }
+
+    console.log('GRID RE-RENDERED');
 
     return(
         <div ref={elementRef} className="text-grid-area"
@@ -88,7 +92,7 @@ export const TextGrid = forwardRef((props, ref) => {
             <div  className="text-grid">
 
                 {rowsArr.map((cr, rowIndex) =>
-                    <TextGridRow key={`gridRow-${rowIndex}`} rowId={rowIndex + viewport.yOffset}></TextGridRow> 
+                    <TextGridRow key={`gridRow-${rowIndex}`} rowId={rowIndex + vYOffset}></TextGridRow> 
                 )}
                 <TextGridRangeSelection></TextGridRangeSelection>
             </div>
@@ -105,12 +109,15 @@ function TextGridRow(props) {
     
     const rowId = props.rowId;
     const cellHeight = useSelector(state => state.cellHeight);
-    const viewport = useSelector(state => state.viewport);
-    const cellArr = viewport.cols > 0 ? new Array(viewport.cols).fill('') : [];
+    const vCols = useSelector(state => state.viewport.cols);
+    const vXOffset = useSelector(state => state.viewport.xOffset);
+    const cellArr = vCols > 0 ? new Array(vCols).fill('') : [];
+
+    console.log('ROW RE-RENDERED');
 
     return(<div className={'text-grid-row'} style={{height: cellHeight, maxHeight: cellHeight, minHeight: cellHeight}}>
         {cellArr.map((cell, colId) => {
-            const colIndex = colId + viewport.xOffset;
+            const colIndex = colId + vXOffset;
             return (<TextGridCell key={'cell-'+rowId+'-'+colIndex} rowId={rowId} colId={colIndex} ></TextGridCell>);
         })}
     </div>);
@@ -134,10 +141,14 @@ function TextGridCell(props) {
 
     const isRowHovered = useSelector (state => state.hover.rowIndex === rowId );
     const isColHovered = useSelector (state => state.hover.colIndex === colId );
-    const textDirX = useSelector(state => state.target.dir.x);
-    const textDirY = useSelector(state => state.target.dir.y);
-    const isCellHovered =  isRowHovered && isColHovered;
     const isCellSelected = useSelector (state => state.target.rowIndex === rowId && state.target.colIndex === colId);
+
+    // the isCellSelected ternary is used to prevent re-rendering of every cell when the direction changes
+    const textDirX = useSelector(state => isCellSelected ? state.target.dir.x : 0);
+    const textDirY = useSelector(state => isCellSelected ? state.target.dir.y : 0);
+    
+    const isCellHovered =  isRowHovered && isColHovered;
+    
     
 
     const getClassNames = () => {
