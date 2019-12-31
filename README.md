@@ -44,6 +44,7 @@ Live demo project is published to github pages:<br/>https://aaronrcox.github.io/
  ## Refactor
  - Migrate befungeIde state to redux - this should reduce some of the hacky code
  - Migrate befungeInterpreter state to redux - this should reduce some of the hacky code and reduce number of re-rendes
+ - Move all logic from epics.js that use state.value to reducer
  - Move befunge asside to be between the toolbar and statusbar
  - Smooth scroll - currently scrolling adjusts display offcets per cell and feels a little clunky / laggy.
  - Styleing - use css variables that can be changed at runtime to allow for theming - alternativelly, refactor to different styleing solutions.

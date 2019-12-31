@@ -35,10 +35,11 @@ import * as actions from './actions';
         endColIndex: 0
     },
 
-    
-
     selectedCells: []
 };
+
+
+
 
 export function reducer(state = initialState, action) {
 
@@ -48,7 +49,12 @@ export function reducer(state = initialState, action) {
          * 
          */
         case actions.INITIALISE_GRID: {
-            return {...state, ...action.payload};
+            const viewport = {
+                ...state.viewport,
+                rows: action.payload.rows,
+                cols: action.payload.cols
+            };
+            return {...state, ...action.payload, viewport};
         }
 
         /**

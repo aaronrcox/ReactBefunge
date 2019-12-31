@@ -12,14 +12,16 @@ export const TextGrid = forwardRef((props, ref) => {
 
     useImperativeHandle(ref, () => ({
         test: () => console.log('hello world'),
-        getCells: () => store.getState().cells
+        getCells: () => store.getState().textGrid.cells
     }), []);
 
     const dispatch = useDispatch();
 
-    const vRows = useSelector(state => state.viewport.rows);
-    const vXOffset = useSelector(state => state.viewport.xOffset);
-    const vYOffset = useSelector(state => state.viewport.yOffset);
+    const vRows = useSelector(state => state.textGrid.viewport.rows);
+    const vXOffset = useSelector(state => { 
+        return state.textGrid.viewport.xOffset;
+    });
+    const vYOffset = useSelector(state => state.textGrid.viewport.yOffset);
     const rowsArr = vRows > 0 ? new Array(vRows).fill('') : [];
 
     const elementRef = useRef(null);
@@ -108,9 +110,9 @@ export const TextGrid = forwardRef((props, ref) => {
 function TextGridRow(props) {
     
     const rowId = props.rowId;
-    const cellHeight = useSelector(state => state.cellHeight);
-    const vCols = useSelector(state => state.viewport.cols);
-    const vXOffset = useSelector(state => state.viewport.xOffset);
+    const cellHeight = useSelector(state => state.textGrid.cellHeight);
+    const vCols = useSelector(state => state.textGrid.viewport.cols);
+    const vXOffset = useSelector(state => state.textGrid.viewport.xOffset);
     const cellArr = vCols > 0 ? new Array(vCols).fill('') : [];
 
     console.log('ROW RE-RENDERED');
@@ -128,25 +130,26 @@ function TextGridRow(props) {
  */
 function TextGridCell(props) {
 
+
     const rowId = props.rowId;
     const colId = props.colId;
 
     const cell = useSelector(state => {
-        if(rowId < state.cells.length && colId < state.cells[rowId].length)
-            return state.cells[rowId][colId];
+        if(rowId < state.textGrid.cells.length && colId < state.textGrid.cells[rowId].length)
+            return state.textGrid.cells[rowId][colId];
         return '';
     });
     
-    const cellWidth = useSelector(state => state.cellWidth);
+    const cellWidth = useSelector(state => state.textGrid.cellWidth);
 
-    const isRowHovered = useSelector (state => state.hover.rowIndex === rowId );
-    const isColHovered = useSelector (state => state.hover.colIndex === colId );
-    const isCellSelected = useSelector (state => state.target.rowIndex === rowId && state.target.colIndex === colId);
+    const isRowHovered = useSelector (state => state.textGrid.hover.rowIndex === rowId );
+    const isColHovered = useSelector (state => state.textGrid.hover.colIndex === colId );
+    const isCellSelected = useSelector (state => state.textGrid.target.rowIndex === rowId && state.textGrid.target.colIndex === colId);
 
     // the isCellSelected ternary is used to prevent re-rendering of every cell when the direction changes
-    const textDirX = useSelector(state => isCellSelected ? state.target.dir.x : 0);
-    const textDirY = useSelector(state => isCellSelected ? state.target.dir.y : 0);
-    
+    const textDirX = useSelector(state => isCellSelected ? state.textGrid.target.dir.x : 0);
+    const textDirY = useSelector(state => isCellSelected ? state.textGrid.target.dir.y : 0);
+
     const isCellHovered =  isRowHovered && isColHovered;
     
     
@@ -167,6 +170,8 @@ function TextGridCell(props) {
         return classNames.join(' ');
     }
 
+    
+
     return(<span className={getClassNames()}  style={{width: cellWidth, maxWidth: cellWidth, minWidth: cellWidth}} >
         <div className="text-grid-cell-content">
             {cell}
@@ -179,10 +184,10 @@ function TextGridCell(props) {
  */
 function TextGridRangeSelection() {
 
-    const selection = useSelector(state => state.selection );
-    const cellWidth = useSelector(state => state.cellWidth);
-    const cellHeight = useSelector(state => state.cellHeight);
-    const viewport = useSelector(state => state.viewport);
+    const selection = useSelector(state => state.textGrid.selection );
+    const cellWidth = useSelector(state => state.textGrid.cellWidth);
+    const cellHeight = useSelector(state => state.textGrid.cellHeight);
+    const viewport = useSelector(state => state.textGrid.viewport);
 
     // with the viewport in place, we need to calculate the relative position of the selction box
     let sci = selection.startColIndex - viewport.xOffset;
@@ -215,9 +220,9 @@ function TextGridRangeSelection() {
  * 
  */
 export function TextGridStatusBar() {
-    const viewport = useSelector(state => state.viewport );
-    const target = useSelector(state => state.target);
-    const selection = useSelector(state => state.selection);
+    const viewport = useSelector(state => state.textGrid.viewport );
+    const target = useSelector(state => state.textGrid.target);
+    const selection = useSelector(state => state.textGrid.selection);
 
     return(<div className="text-grid-status-bar">
         <ul>

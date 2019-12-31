@@ -5,6 +5,9 @@ import { mergeMap } from 'rxjs/operators';
 
 
 
+
+
+
 const setupGrid = (action, state) => action.pipe(
     ofType(actions.SETUP_GRID),
     mergeMap((action) => {
@@ -13,24 +16,18 @@ const setupGrid = (action, state) => action.pipe(
         const height = action.payload.height;
         const text = action.payload.text;
 
-        const cellWidth = action.payload.cellWidth || state.value.cellWidth;
-        const cellHeight = action.payload.cellHeight || state.value.cellHeight;
+        const cellWidth = action.payload.cellWidth || state.value.textGrid.cellWidth;
+        const cellHeight = action.payload.cellHeight || state.value.textGrid.cellHeight;
 
         const rows = Math.floor(height / (cellHeight-1)) + 1;
         const cols = Math.floor(width / (cellWidth-1)) + 1;
         
-        const viewport = {
-            ...state.value.viewport,
-            rows,
-            cols
-        };
-
         // create a 2D array of characters, [rows][cols]
         // regex strips out the various line endings
         const cells = text.replace(/\r\n/g, "\r").replace(/\n/g, "\r").split(/\r/).map(line => line.split(''));
         
         // initialise the grid with the above calculated data
-        return [ actions.initialiseGrid({cellWidth, cellHeight, rows, cols, cells, viewport}) ];
+        return [ actions.initialiseGrid({cellWidth, cellHeight, rows, cols, cells}) ];
     })
 );
 
@@ -43,10 +40,10 @@ const onMouseMoved = (action, state) => action.pipe(
         const my = action.payload.mouseY;
 
         // subtract 1 from width and height for row/col/cell index calculations
-        const cellWidth = state.value.cellWidth - 1;
-        const cellHeight = state.value.cellHeight - 1;
+        const cellWidth = state.value.textGrid.cellWidth - 1;
+        const cellHeight = state.value.textGrid.cellHeight - 1;
 
-        const viewport = state.value.viewport;
+        const viewport = state.value.textGrid.viewport;
 
         // calculate the row/col/cell index the mouse is over
         const rowIndex = Math.floor(my / cellHeight) + viewport.yOffset;
@@ -56,13 +53,13 @@ const onMouseMoved = (action, state) => action.pipe(
         const newActions = [];
 
         // update the hover state
-        if(rowIndex !== state.value.hover.rowIndex || colIndex !== state.value.hover.colIndex) {
+        if(rowIndex !== state.value.textGrid.hover.rowIndex || colIndex !== state.value.textGrid.hover.colIndex) {
             newActions.push(actions.setHoverCell(hoverState));
         }
 
         // If we move the mouse while the mouse is down, than we will
         // either begin the selection, or expand the selection via the drag action
-        if(state.value.selection.isMouseDown) {
+        if(state.value.textGrid.selection.isMouseDown) {
             newActions.push(actions.drag());                   
         }
 
@@ -75,8 +72,8 @@ const onKeyDown = (action, state) => action.pipe(
     ofType(actions.KEY_DOWN),
     mergeMap((action) => {
         const key = action.payload.key;
-        const rowIndex = state.value.target.rowIndex;
-        const colIndex = state.value.target.colIndex;
+        const rowIndex = state.value.textGrid.target.rowIndex;
+        const colIndex = state.value.textGrid.target.colIndex;
         const isShiftDown = action.payload.isShiftDown;
         
         const cbResult = action.payload.callback(state.value, key) || {};
@@ -134,7 +131,7 @@ const onKeyDown = (action, state) => action.pipe(
 
                 if(isShiftDown) {
                     // TODO: create action to grow/shrink the selection area
-                    const selection = { ...state.value.selection };
+                    const selection = { ...state.value.textGrid.selection };
                     selection.endColIndex += dir.x;
                     selection.endRowIndex += dir.y;
                     return[  ...cbActions, actions.setSelectionArea(selection), actions.setTypeingDir(dir.x, dir.y) ];
