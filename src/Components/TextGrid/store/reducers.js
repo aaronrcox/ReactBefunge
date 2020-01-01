@@ -1,6 +1,7 @@
 import * as actions from './actions';
 
  const initialState = {
+    initialised: false,
     cellWidth: 24,
     cellHeight: 24, 
     rows: 0,    // TODO: set to length of cells
@@ -53,7 +54,7 @@ export function reducer(state = initialState, action) {
                 rows: action.payload.rows,
                 cols: action.payload.cols
             };
-            return {...state, ...action.payload, viewport};
+            return {...state, ...action.payload, initialised: true, viewport};
         }
 
         /**
@@ -313,14 +314,18 @@ export function reducer(state = initialState, action) {
 
         case actions.FILL_SELECTION: {
             const cells = state.cells;
+
             const sx = state.selection.startColIndex;
             const sy = state.selection.startRowIndex;
             const ex = state.selection.endColIndex;
             const ey = state.selection.endRowIndex;
+
+            // calculate the left right, top and bottom bounds of the selection
             const xMin = Math.min(sx, ex);
             const yMin = Math.min(sy, ey);
             const xMax = Math.max(sx, ex);
             const yMax = Math.max(sy, ey);
+
             // fill the cells with the paste data
             for(let y=yMin; y<=yMax; y++) {
                 for(let x=xMin; x<xMax; x++) {

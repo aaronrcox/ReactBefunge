@@ -44,14 +44,11 @@ const BefungeIde = forwardRef((props, ref) => {
         });
         
         interpreter.onConsoleOut(text => {
-            terminalRef.current.print(text);
+            if(terminalRef.current)
+                terminalRef.current.print(text);
         });
         interpreter.onProgramTerminate(() => {
-            clearInterval(runIntervilleTimer);
-            runIntervilleTimer = null;
-            setBefungeInterpreter(null);
-            terminalRef.current.print('\nProgram Terminated!\n');
-            terminalRef.current.submitInput();
+            stopProgram();            
         });
         interpreter.onRequestConsoleInput(() => {
             const input = window.prompt("Enter a value", "");
@@ -72,11 +69,23 @@ const BefungeIde = forwardRef((props, ref) => {
 
     
     const runProgram = () => {
-        initProgram();
-        runIntervilleTimer = setInterval(() => {
-            stepProgram();
-        }, 0);
+        if(befungeInterpreter === null && runIntervilleTimer === null) {
+            initProgram();
+            runIntervilleTimer = setInterval(() => {
+                stepProgram();
+            }, 0);
+        }
     };
+
+    const stopProgram = () => {
+        clearInterval(runIntervilleTimer);
+        runIntervilleTimer = null;
+        setBefungeInterpreter(null);
+        if(terminalRef.current) {
+            terminalRef.current.print('\nProgram Terminated!\n');
+            terminalRef.current.submitInput();
+        }
+    }
 
     const stepProgram = () => {
         befungeInterpreter.step();
@@ -108,9 +117,16 @@ v,,,,,,"World!"<
 // const prog = 
 // `~:1+!#@_,`;
 
+// const prog = 
+// `64*>:00p258**44$$^>4$,1-:#v_v
+// 4$#^; BEFUNGE97 ;^#_@#:-1$>#<
+// 4*2-*26g00*:-*58:<vg3/*48+*:$
+// #@@@ooo:::...  .    .     .  `;
+
+
     const config = {
-        cellWidth: 32,
-        cellHeight: 32,
+        cellWidth: 24,
+        cellHeight: 24,
         text: prog,
         events: {
             onKeyDown: handleKeyPress
@@ -127,7 +143,7 @@ v,,,,,,"World!"<
         toolbar.push({ text: 'Debug', classNames: 'button', onClick: () => debugProgram() },);
     }
     else {
-        toolbar.push({ text: 'Stop', classNames: 'button', onClick: () => setBefungeInterpreter(null) });
+        toolbar.push({ text: 'Stop', classNames: 'button', onClick: () => stopProgram() });
         toolbar.push({ text: 'Step', classNames: 'button', onClick: () => stepProgram() });
     }
 

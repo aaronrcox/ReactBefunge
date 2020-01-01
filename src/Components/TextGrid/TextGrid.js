@@ -11,12 +11,12 @@ import './TextGrid.scss';
 export const TextGrid = forwardRef((props, ref) => {
 
     useImperativeHandle(ref, () => ({
-        test: () => console.log('hello world'),
         getCells: () => store.getState().textGrid.cells
     }), []);
 
     const dispatch = useDispatch();
 
+    const isInitialised = useSelector(state => state.textGrid.initialised);
     const vRows = useSelector(state => state.textGrid.viewport.rows);
     const vXOffset = useSelector(state => state.textGrid.viewport.xOffset);
     const vYOffset = useSelector(state => state.textGrid.viewport.yOffset);
@@ -24,23 +24,21 @@ export const TextGrid = forwardRef((props, ref) => {
 
     const elementRef = useRef(null);
     useEffect(() => {
-        const width = elementRef.current ? elementRef.current.offsetWidth : 0;
-        const height = elementRef.current ? elementRef.current.offsetHeight: 0;
+        if( !isInitialised ) {
+            const width = elementRef.current ? elementRef.current.offsetWidth : 0;
+            const height = elementRef.current ? elementRef.current.offsetHeight: 0;
 
-        dispatch(actions.setupGrid(width, height, props.config.text, props.config.cellWidth, props.config.cellHeight));
-
+            dispatch(actions.setupGrid(width, height, props.config.text, props.config.cellWidth, props.config.cellHeight));
+        }
         const onPasteEvent = document.addEventListener('paste', (event) => {
-            // TODO: paste text at cursor location
             dispatch(actions.paste(event.clipboardData.getData('text')));
-            //console.log("PASTE");
-            //console.log(event.clipboardData.getData('text'));
         });
 
         return () => {
-            document.removeEventListener(onPasteEvent);
+            document.removeEventListener('paste', onPasteEvent);
         };
 
-    }, [props, dispatch]);
+    }, [isInitialised, props, dispatch]);
 
     const handleMouseMove = (event) => {
         
@@ -101,20 +99,6 @@ export const TextGrid = forwardRef((props, ref) => {
         dispatch(actions.setHoverCell({rowIndex: -1, colIndex: -1}));
     };
 
-    const handleCopy = (event) => {
-        console.log("COPY");
-        event.preventDefault();
-    };
-
-    const handleCut = (event) => {
-        console.log("CUT");
-        event.preventDefault();
-    };
-
-    const handlePaste = (event) => {
-        console.log("PASTE");
-        event.preventDefault();
-    }
 
     if( elementRef.current ) {
         // set the scrollposition
@@ -122,8 +106,6 @@ export const TextGrid = forwardRef((props, ref) => {
         elementRef.current.scrollLeft = vXOffset * props.config.cellWidth;
         elementRef.current.scrollTop = vYOffset * props.config.cellHeight;
     }
-
-    console.log('GRID RE-RENDERED');
 
     return(
         <div ref={elementRef} className="text-grid-area"
@@ -158,8 +140,6 @@ function TextGridRow(props) {
     const vCols = useSelector(state => state.textGrid.viewport.cols);
     const vXOffset = useSelector(state => state.textGrid.viewport.xOffset);
     const cellArr = vCols > 0 ? new Array(vCols).fill('') : [];
-
-    console.log('ROW RE-RENDERED');
 
     return(<div className={'text-grid-row'} style={{height: cellHeight, maxHeight: cellHeight, minHeight: cellHeight}}>
         {cellArr.map((cell, colId) => {

@@ -6,7 +6,7 @@ export default class BefungeInterpreter {
         
         this.program = program;
         this.numRows = this.program.length;
-        this.numCols = Math.max( this.program.map(r => r.length) );
+        this.numCols = Math.max( ...this.program.map(r => r.length) );
         
         this.stack = [];
         this.stack$ = new BehaviorSubject([]);
@@ -24,6 +24,10 @@ export default class BefungeInterpreter {
         this.waitingForInput = false;
 
         this.inputStack = [];
+    }
+
+    destroy() {
+        
     }
 
     instructionInfo = {
@@ -146,7 +150,8 @@ export default class BefungeInterpreter {
         }
         else if( ci.i === ':') {
             // Duplicate value on top of the stack
-            this.pushStack( this.stack[this.stack.length -1]);
+            if(this.stack.length > 0)
+                this.pushStack( this.stack[this.stack.length -1]);
         }
         else if( ci.i === '\\') {
             // Swap two values on top of the stack
@@ -189,7 +194,7 @@ export default class BefungeInterpreter {
             const y = this.popStack();
             const x = this.popStack();
             const val = this.program[y][x]; // TODO: grow program size
-            this.pushStck(val);
+            this.pushStack(val);
         }
         else if( ci.i === '&' ) {
             // Ask user for a number and push it
@@ -282,13 +287,13 @@ export default class BefungeInterpreter {
                 break;
             }
             case '_': {
-                const a = this.stack[this.stack.length - 1];
+                const a = this.stack.length > 0 ? this.stack[this.stack.length - 1] : 0;
                 dirY = 0;
                 dirX = a === 0 ? 1 : -1;
                 break;
             }
             case '|': {
-                const a = this.stack[this.stack.length - 1];
+                const a = this.stack.length > 0 ? this.stack[this.stack.length - 1] : 0;
                 dirY = a === 0 ? 1 : -1;
                 dirX = 0;
                 break;
