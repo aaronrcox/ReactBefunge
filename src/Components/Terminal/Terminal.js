@@ -10,6 +10,8 @@ export const Terminal = forwardRef((props, ref) => {
 
     const [state, dispatch] = useReducer(reducer, initialState);
 
+    // collection of commands to run when the user types stuff into the terminal.
+    // the command are extended by props.commands.
     const commands = {
         clear: (args) => { 
             dispatch(actions.clear());
@@ -44,6 +46,10 @@ export const Terminal = forwardRef((props, ref) => {
     }, [props, commands]);
     
 
+    // handle key press within the text area
+    // for characters like backspace and delete, additional checks need to be made to 
+    // to ensure we dont delete anything within the readonly area.
+    // NOTE: there may be more cases to handle, but this works for us for now.
     const handleKeyDown = (event) => {
 
         if (event.key.length === 1) {
@@ -64,6 +70,11 @@ export const Terminal = forwardRef((props, ref) => {
         }
     }
 
+    // the event is fired when the cursor position changes in the text area
+    // if we select an area within the readOnlyPos, than we re-position the cursor
+    // allowing us to simulate a kind of terminal experience.
+    // text entered into the terminal after the readOnlyPos is considered user input
+    // and can be freely edited.
     const handleSelect = (event) => {
         if(event.target.selectionStart === state.readOnlyPos-1){
             event.target.setSelectionRange(state.readOnlyPos, state.readOnlyPos);
@@ -73,10 +84,13 @@ export const Terminal = forwardRef((props, ref) => {
         }
     }
 
+    // change event for the text area, when the input changes, we need to update the state.
     const handleChange = (event) => {
         dispatch(actions.setConsoleText(event.target.value));
     }
 
+    // This allows us to provide an api via ref to our parent component
+    // the below methods can be called by the parent
     useImperativeHandle(ref, () => ({
         print: (text) => {
             dispatch(actions.appendProgramInput(text));
