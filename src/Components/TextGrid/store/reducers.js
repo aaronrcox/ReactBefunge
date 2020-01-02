@@ -44,6 +44,8 @@ import * as actions from './actions';
 
 export function reducer(state = initialState, action) {
 
+    console.log(state.rows);
+
     switch(action.type) {
         /**
          * 
@@ -54,7 +56,8 @@ export function reducer(state = initialState, action) {
                 rows: action.payload.rows,
                 cols: action.payload.cols
             };
-            return {...state, ...action.payload, initialised: true, viewport};
+            const size = _getSize(action.payload.cells);
+            return {...state, ...action.payload, ...size, initialised: true, viewport};
         }
 
         /**
@@ -77,7 +80,12 @@ export function reducer(state = initialState, action) {
 
             _fillArrCells(cells, colIndex, rowIndex);
             cells[rowIndex][colIndex] = value;
-            return {...state, cells };
+
+            _trimArrCells(cells);
+            const newSize = _getSize(cells);
+
+            
+            return {...state, ...newSize, cells };
         }
 
         /**
@@ -300,6 +308,8 @@ export function reducer(state = initialState, action) {
                 }
             }
 
+            
+
             // update the selection area
             const selection = {
                 ...state.selection,
@@ -309,7 +319,9 @@ export function reducer(state = initialState, action) {
                 endColIndex: sx + numCols
             };
 
-            return {...state, cells, selection };
+            const size = _getSize(cells);
+
+            return {...state, ...size, cells, selection };
         }
 
         case actions.FILL_SELECTION: {
@@ -333,7 +345,10 @@ export function reducer(state = initialState, action) {
                     cells[y][x] = action.payload;
                 }
             }
-            return {...state, cells };
+
+            const size = _getSize(cells);
+
+            return {...state, ...size, cells };
         }
 
         /**
@@ -345,6 +360,11 @@ export function reducer(state = initialState, action) {
     }
 };
 
+function _getSize(arr) {
+    const rows = arr.length;
+    const cols = Math.max(...arr.map(z => z.length));
+    return {rows, cols};
+}
 
 function _fillArrCells(arr, x, y) {
     while(arr.length <= y)
@@ -352,6 +372,25 @@ function _fillArrCells(arr, x, y) {
 
     while(arr[y].length <= x)
         arr[y].push('');
+}
+
+function _trimArrCells(arr) {
+    
+    // trim each row
+    for(let rid = arr.length - 1; rid >= 0; rid--){
+        for(let cid = arr[rid].length - 1; cid >= 0; cid--){
+            if( arr[rid][cid] )  break;
+            arr[rid].pop();
+        }
+    }
+
+    // remove empty rows
+    for(let rid = arr.length - 1; rid >= 0; rid--){
+        if(arr[rid].length > 0) break;
+        arr.pop();
+    }
+
+    console.log(arr);
 }
 
 function _moveTarget(target, dx, dy) {

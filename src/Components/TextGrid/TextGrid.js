@@ -169,6 +169,8 @@ function TextGridCell(props) {
     const isRowHovered = useSelector (state => state.textGrid.hover.rowIndex === rowId );
     const isColHovered = useSelector (state => state.textGrid.hover.colIndex === colId );
     const isCellSelected = useSelector (state => state.textGrid.target.rowIndex === rowId && state.textGrid.target.colIndex === colId);
+    const isBottomEdge = useSelector( state => state.textGrid.rows-1 === rowId );
+    const isRightEdge = useSelector( state => state.textGrid.cols-1 === colId);
 
     // the isCellSelected ternary is used to prevent re-rendering of every cell when the direction changes
     const textDirX = useSelector(state => isCellSelected ? state.textGrid.target.dir.x : 0);
@@ -189,7 +191,8 @@ function TextGridCell(props) {
         if( isCellSelected && textDirX > 0 ) classNames.push('active-override-left');
         if( isCellSelected && textDirX < 0 ) classNames.push('active-override-right');
         if( isCellSelected && textDirY > 0 ) classNames.push('active-override-top');
-        if( isCellSelected && textDirY < 0 ) classNames.push('active-override-bottom');
+        if( isBottomEdge ) classNames.push('bottom-edge');
+        if( isRightEdge ) classNames.push('right-edge');
 
         return classNames.join(' ');
     }

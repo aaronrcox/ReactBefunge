@@ -102,7 +102,7 @@ export const Terminal = forwardRef((props, ref) => {
     }), [state.consoleText, state.readOnlyPos, submitLine] );
 
 
-    return(<div className="terminal" style={{maxHeight: 200, height: 200, display: 'flex'}}>
+    return(<div className="terminal">
         
         <textarea wrap="off" spellCheck="false" value={state.consoleText}
             onChange={handleChange}

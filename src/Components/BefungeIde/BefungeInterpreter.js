@@ -24,6 +24,7 @@ export default class BefungeInterpreter {
         this.waitingForInput = false;
 
         this.inputStack = [];
+        this.skipCount = 0;
     }
 
     destroy() {
@@ -132,17 +133,13 @@ export default class BefungeInterpreter {
         }
         else if( ci.i === '_') {
             // Pop a value; move right if value=0, left otherwise
-            this.popStack(); 
             // the direction was already calculated when we fetched this instruction, so we just need to pop off the value
-            // ci.dirY = 0;
-            // ci.dirX = a === 0 ? 1 : -1;
+            this.popStack(); 
         }
         else if( ci.i === '|') {
             // Pop a value; move down if value=0, up otherwise
-            this.popStack(); 
             // the direction was already calculated when we fetched this instruction, so we just need to pop off the value
-            // ci.dirY = 0;
-            // ci.dirX = a === 0 ? 1 : -1;
+            this.popStack(); 
         }
         else if(ci.i === '"') {
             // Start string mode: push each character's ASCII value all the way up to the next " quote character
@@ -176,8 +173,9 @@ export default class BefungeInterpreter {
         }
         else if( ci.i === '#' ) {
             // Bridge: Skip next cell
-            ci.dirX *= 2;
-            ci.dirY *= 2
+            // ci.dirX *= 2;
+            // ci.dirY *= 2
+            this.skipCount += 1;
         }
         else if( ci.i === 'p' ) {
             // A "put" call (a way to store a value for later use). Pop y, x, and v, then change the character at (x,y) in the program to the character with ASCII value v
@@ -193,8 +191,14 @@ export default class BefungeInterpreter {
             // A "get" call (a way to retrieve data in storage). Pop y and x, then push ASCII value of the character at that position in the program
             const y = this.popStack();
             const x = this.popStack();
-            const val = this.program[y][x]; // TODO: grow program size
-            this.pushStack(val);
+
+            if( x >= 0 && x < this.numCols && y >= 0 && y < this.numRows ) {
+                const val = this.program[y][x]; 
+                this.pushStack(val);
+            }
+            else {
+                this.pushStack(0);
+            }
         }
         else if( ci.i === '&' ) {
             // Ask user for a number and push it
@@ -248,22 +252,32 @@ export default class BefungeInterpreter {
         this.stack$.next(this.stack);
     }
     popStack() {
-        const val = this.stack.pop();
+        const val = this.stack.length > 0 ? this.stack.pop() : 0;
         this.stack$.next(this.stack);
         return val;
     }
 
     getNextInstruction() {
         const ci = this.currentInstruction;
-        let nx = ci.x + ci.dirX;
-        let ny = ci.y + ci.dirY;
+        let nx = ci.x;
+        let ny = ci.y;
+        do {
+            this.skipCount -= 1;
 
-        // wrap the instructions
-        if( ny < 0 ) ny = this.numRows - 1;
-        if( nx < 0 ) nx = this.numCols - 1;
-        if( ny >= this.numRows ) ny = 0;
-        if( nx >= this.numCols ) nx = 0;
-        
+            nx = nx + ci.dirX;
+            ny = ny + ci.dirY;
+
+            // wrap the instructions
+            if( ny < 0 ) ny = this.numRows - 1;
+            if( nx < 0 ) nx = this.numCols - 1;
+            if( ny >= this.numRows ) ny = 0;
+            if( nx >= this.numCols ) nx = 0;
+            
+            
+        }while(this.skipCount >= 0)
+        this.skipCount = 0;
+            
+    
         const instruction = (nx < this.program[ny].length) ? this.program[ny][nx] : '';
         const instructionDir = this.getInstructionDir(ci.dirX, ci.dirY, instruction);
         
@@ -273,6 +287,10 @@ export default class BefungeInterpreter {
     getInstructionDir(cDirX, cDirY, instruction) {
         let dirX = cDirX;
         let dirY = cDirY;
+
+        if(this.stringMode)
+            return {dirX, dirY};
+
         switch(instruction) {
             case '>': { dirX = 1; dirY = 0; break; }
             case '<': { dirX =-1; dirY = 0; break; }

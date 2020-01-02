@@ -148,6 +148,14 @@ $tg-grid-scroll-thumb-hover-background: rgba(255, 255, 255, 0.2);
             background-color: $tg-bg-lightest;
         }
 
+        .bottom-edge {
+            border-bottom: 2px solid grey;
+        }
+
+        .right-edge {
+            border-right: 2px solid grey;
+        }
+
         .active-override {
             background-color: $tg-bg-lightest;
             color: $tg-text-active;

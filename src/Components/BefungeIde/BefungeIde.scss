@@ -20,21 +20,26 @@ $tg-grid-scroll-thumb-hover-background: rgba(255, 255, 255, 0.2);
 .befungeIde {
 
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     height: 100%;
 
     .main {
+        display: flex;
+        flex: 1;
+        flex-direction: row;
+    }
+
+    .main-area {
         display: flex;
         flex: 1;
         flex-direction: column;
     }
     
     .asside {
-        display: flex;
-        flex-direction: column;
-        
-        width: 300px;
+        height: 100%;
         background-color: $tg-bg-lighter;
+        border-left: 1px solid $tg-bg-darker;
+        border-right: 1px solid $tg-bg-darker;
 
         font-size: smaller;
 

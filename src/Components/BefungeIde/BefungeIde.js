@@ -1,11 +1,12 @@
 
+import 'react-reflex/styles.css';
 import React, {useRef, forwardRef, useState} from 'react';
 import { TextGrid, TextGridStatusBar, actions} from '../TextGrid';
 import { Terminal } from '../Terminal';
 import { Toolbar } from '../Toolbar';
 import BefungeInterpreter from './BefungeInterpreter';
 import { store as textGridStore } from '../../store';
-
+import { ReflexContainer, ReflexSplitter, ReflexElement } from 'react-reflex';
 import './BefungeIde.scss';
 import { BefungeStackVivew } from './BefungeStackView';
 
@@ -72,8 +73,9 @@ const BefungeIde = forwardRef((props, ref) => {
         if(befungeInterpreter === null && runIntervilleTimer === null) {
             initProgram();
             runIntervilleTimer = setInterval(() => {
-                stepProgram();
-            }, 0);
+                
+                    stepProgram();
+            }, 1);
         }
     };
 
@@ -104,12 +106,12 @@ const BefungeIde = forwardRef((props, ref) => {
             befungeInterpreter.input(input);
     }
 
-const prog = 
-`>              v
-v  ,,,,,"Hello"<
->48*,          v
-v,,,,,,"World!"<
->25*,@`;
+// const prog = 
+// `>              v
+// v  ,,,,,"Hello"<
+// >48*,          v
+// v,,,,,,"World!"<
+// >25*,@`;
 
 // const prog = 
 // `64+"!dlroW ,olleH">:#,_@`;
@@ -123,10 +125,22 @@ v,,,,,,"World!"<
 // 4*2-*26g00*:-*58:<vg3/*48+*:$
 // #@@@ooo:::...  .    .     .  `;
 
+const prog = 
+`1-0g:"Z"-#v_$91+"sparw tup/teG">:#,_$               v                          Z
+          >:" "-#v_$91+"ecaps snruter teg BOO">:#,_$v
+v                >0" snruter teg BOO">:#,_$.91+,    >
+>8:+:*11p11g#v_91+"tib 8 dengis"01-11p11g!#v_"nu">" era slleC">:#,_v
+vv           >91+"tib 8>"                  >     ^                 >91+"krow " #
+ >        >"spmuj egdE">:#,_   91+"krow "04-3%1+#v_        >"sredniamer evitag"v
+>"ton od "^                                      >"ton od "^
+"eN">:#,_  91+"skrow edomgnirts ni @">:#,_@                                    >`;
+
+//const prog = `>  #12#  <`;
+
 
     const config = {
-        cellWidth: 24,
-        cellHeight: 24,
+        cellWidth: 16,
+        cellHeight: 16,
         text: prog,
         events: {
             onKeyDown: handleKeyPress
@@ -149,19 +163,45 @@ v,,,,,,"World!"<
 
     return(
     <div className="befungeIde">
-        
-        <div className="main">
-            <Toolbar items={toolbar}></Toolbar>
-            <TextGrid ref={textGridRef} config={config} ></TextGrid>
-            <Terminal ref={terminalRef} commands={terminalCommands} onEnter={terminalOnEnter}></Terminal>
-            <TextGridStatusBar></TextGridStatusBar>
-        </div>
-        <div className="asside">
-            <div className="asside-header"> Stack</div>
-            <div className="asside-section" style={{maxHeight: 200}}>
-                <BefungeStackVivew program={befungeInterpreter}></BefungeStackVivew>            
-            </div>
-        </div>
+        <ReflexContainer orientation="horizontal">
+            {/* TOP MENU BAR */}
+            <ReflexElement style={{overflow:'hidden'}} minSize={24} maxSize={24}>
+                <Toolbar items={toolbar}></Toolbar>
+            </ReflexElement>
+
+            {/* MAIN AREA */}
+            <ReflexElement>
+                <ReflexContainer orientation="vertical">
+                    <ReflexElement flex="1">
+                        <ReflexContainer orientation="horizontal">
+                            <ReflexElement flex="1">
+                                <TextGrid ref={textGridRef} config={config} ></TextGrid>
+                            </ReflexElement>
+                            <ReflexSplitter />
+                            <ReflexElement minSize="200" maxSize="400" style={{overflow:'hidden'}}>
+                                <Terminal ref={terminalRef} commands={terminalCommands} onEnter={terminalOnEnter}></Terminal>
+                            </ReflexElement>
+                        </ReflexContainer>
+                    </ReflexElement>
+                    <ReflexSplitter />
+                    <ReflexElement style={{overflow:'hidden'}} minSize="200" maxSize="400">
+                    <div className="asside">
+                        <div className="asside-header">Debug Stack</div>
+                        <div className="asside-section" style={{maxHeight: 200}}>
+                            <BefungeStackVivew program={befungeInterpreter}></BefungeStackVivew>            
+                        </div>
+                    </div>
+                    </ReflexElement>
+                </ReflexContainer>
+               
+            </ReflexElement>
+
+            {/* STATUS BAR */}
+            <ReflexElement style={{overflow:'hidden'}} minSize={24} maxSize={24}>
+                <TextGridStatusBar></TextGridStatusBar>
+            </ReflexElement>
+
+        </ReflexContainer>
     </div>);
 });
 
