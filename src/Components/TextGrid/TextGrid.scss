@@ -18,6 +18,11 @@ $tg-grid-scroll-track-background: rgb(30, 30, 30);
 $tg-grid-scroll-thumb-background: rgba(255, 255, 255, 0.1);
 $tg-grid-scroll-thumb-hover-background: rgba(255, 255, 255, 0.2);
 
+.customScrollbars::-webkit-scrollbar { width: 8px; height: 8px; }
+.customScrollbars::-webkit-scrollbar-track { background-color: $tg-grid-scroll-track-background; }
+.customScrollbars::-webkit-scrollbar-thumb { background: $tg-grid-scroll-thumb-background; border-radius: 10px; }
+.customScrollbars::-webkit-scrollbar-thumb:hover { background: $tg-grid-scroll-thumb-hover-background }
+
 // Scrollbars
 .text-grid-area::-webkit-scrollbar { width: 8px; height: 8px; }
 .text-grid-area::-webkit-scrollbar-track { background-color: $tg-grid-scroll-track-background; }

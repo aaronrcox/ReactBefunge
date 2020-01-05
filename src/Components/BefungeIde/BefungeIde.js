@@ -1,7 +1,7 @@
 
 import 'react-reflex/styles.css';
 import React, {useRef, forwardRef, useState} from 'react';
-import { TextGrid, TextGridStatusBar, actions} from '../TextGrid';
+import { TextGrid, TextGridStatusBar, actions, TextGridCanvas} from '../TextGrid';
 import { Terminal } from '../Terminal';
 import { Toolbar } from '../Toolbar';
 import BefungeInterpreter from './BefungeInterpreter';
@@ -106,12 +106,22 @@ const BefungeIde = forwardRef((props, ref) => {
             befungeInterpreter.input(input);
     }
 
-// const prog = 
+    const prog = 
+`"v
+ a
+ a
+ a
+ @`;
+
+// let prog = 
 // `>              v
 // v  ,,,,,"Hello"<
 // >48*,          v
 // v,,,,,,"World!"<
 // >25*,@`;
+
+// prog = `<v"\]^_"abc%u$#d%t$#e%s$#f%r$#g%q$#h%ponmlkji"
+// 3<_@#:,-*9`
 
 // const prog = 
 // `64+"!dlroW ,olleH">:#,_@`;
@@ -125,22 +135,21 @@ const BefungeIde = forwardRef((props, ref) => {
 // 4*2-*26g00*:-*58:<vg3/*48+*:$
 // #@@@ooo:::...  .    .     .  `;
 
-const prog = 
-`1-0g:"Z"-#v_$91+"sparw tup/teG">:#,_$               v                          Z
-          >:" "-#v_$91+"ecaps snruter teg BOO">:#,_$v
-v                >0" snruter teg BOO">:#,_$.91+,    >
->8:+:*11p11g#v_91+"tib 8 dengis"01-11p11g!#v_"nu">" era slleC">:#,_v
-vv           >91+"tib 8>"                  >     ^                 >91+"krow " #
- >        >"spmuj egdE">:#,_   91+"krow "04-3%1+#v_        >"sredniamer evitag"v
->"ton od "^                                      >"ton od "^
-"eN">:#,_  91+"skrow edomgnirts ni @">:#,_@                                    >`;
+// const prog = 
+// `1-0g:"Z"-#v_$91+"sparw tup/teG">:#,_$               v                          Z
+//           >:" "-#v_$91+"ecaps snruter teg BOO">:#,_$v
+// v                >0" snruter teg BOO">:#,_$.91+,    >
+// >8:+:*11p11g#v_91+"tib 8 dengis"01-11p11g!#v_"nu">" era slleC">:#,_v
+// vv           >91+"tib 8>"                  >     ^                 >91+"krow " #
+//  >        >"spmuj egdE">:#,_   91+"krow "04-3%1+#v_        >"sredniamer evitag"v
+// >"ton od "^                                      >"ton od "^
+// "eN">:#,_  91+"skrow edomgnirts ni @">:#,_@                                    >`;
 
 //const prog = `>  #12#  <`;
 
-
     const config = {
-        cellWidth: 16,
-        cellHeight: 16,
+        cellWidth: 20,
+        cellHeight: 20,
         text: prog,
         events: {
             onKeyDown: handleKeyPress
@@ -174,8 +183,8 @@ vv           >91+"tib 8>"                  >     ^                 >91+"krow " #
                 <ReflexContainer orientation="vertical">
                     <ReflexElement flex="1">
                         <ReflexContainer orientation="horizontal">
-                            <ReflexElement flex="1">
-                                <TextGrid ref={textGridRef} config={config} ></TextGrid>
+                            <ReflexElement propagateDimensions={true} style={{overflow:'hidden'}}>
+                                <TextGridCanvas ref={textGridRef} config={config}></TextGridCanvas>
                             </ReflexElement>
                             <ReflexSplitter />
                             <ReflexElement minSize="200" maxSize="400" style={{overflow:'hidden'}}>
@@ -193,7 +202,6 @@ vv           >91+"tib 8>"                  >     ^                 >91+"krow " #
                     </div>
                     </ReflexElement>
                 </ReflexContainer>
-               
             </ReflexElement>
 
             {/* STATUS BAR */}

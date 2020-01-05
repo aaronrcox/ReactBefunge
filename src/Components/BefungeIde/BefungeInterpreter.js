@@ -5,8 +5,8 @@ export default class BefungeInterpreter {
     constructor(program) {
         
         this.program = program;
-        this.numRows = this.program.length;
-        this.numCols = Math.max( ...this.program.map(r => r.length) );
+        this.numRows = 25;
+        this.numCols = 80;
         
         this.stack = [];
         this.stack$ = new BehaviorSubject([]);
@@ -16,7 +16,6 @@ export default class BefungeInterpreter {
         this.onProgramTerminateCb = null;
         this.onRequestConsoleInputCb = null;
         
-
         this.currentInstruction = null;
         this.nextInstruction = { x: 0, y: 0, i: program[0][0], ...this.getInstructionDir(1, 0, program[0][0]) };
         this.stringMode = false;
@@ -79,7 +78,9 @@ export default class BefungeInterpreter {
                 this.stringMode = false;
             }
             else {
-                this.pushStack(ci.i.charCodeAt(0));
+                let c = ci.i;
+                if( c === '' ) c = ' ';
+                this.pushStack(c.charCodeAt(0));
             }
         }
         else if( ci.i.includes(['>', '<', 'v', '^', '?']) ) {

@@ -1,7 +1,8 @@
 export const NO_OP = '[TextGrid] NO Op';
 
-export const SETUP_GRID = '[TextGrid] Setup';
-export const INITIALISE_GRID = '[TextGrid] Initialise';
+export const SET_TEXT = '[TextGrid] Set Text';
+export const SET_VIEWPORT = '[TextGrid] Set viewport';
+export const SET_CELL_SIZE = '[TextGrid] Set Cell Size';
 
 export const MOUSE_MOVED = '[TextGrid] MouseMoved';
 export const MOUSE_DOWN = '[TextGrid] Mouse Pressed';
@@ -52,13 +53,20 @@ export function none() {
     return { type: NO_OP }
 }
 
-export function setupGrid(width, height, text, cellWidth, cellHeight) {
-    return { type: SETUP_GRID, payload: {width, height, text, cellWidth, cellHeight} }
+
+export function setViewport(width, height, scrollX, scrollY) {
+    return { type: SET_VIEWPORT, payload: {width, height, scrollX, scrollY} };
 }
 
-export function initialiseGrid(payload) {
-    return { type: INITIALISE_GRID, payload }
+export function setText(text) {
+    return {type: SET_TEXT, payload: {text} };
 }
+
+export function setCellSize(width, height) {
+    return {type: SET_CELL_SIZE, payload: {width, height} };
+}
+
+
 
 export function mouseMoved(mousePos) {
     return { type: MOUSE_MOVED, payload: mousePos };

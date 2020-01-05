@@ -4,14 +4,18 @@ import * as actions from './actions';
     initialised: false,
     cellWidth: 24,
     cellHeight: 24, 
-    rows: 0,    // TODO: set to length of cells
-    cols: 0,    // TODO: set to length of longest row in cells.
+    rows: 25,    // Befunge 93 specifies strict row / col sizes
+    cols: 80,    // Befunge 93 specifies strict row / col sizes
     cells: [],
     insertMode: false,
 
     viewport: {
         rows: 0,
         cols: 0,
+        width: 0,
+        height: 0,
+        scrollX: 0,
+        scrollY: 0,
         xOffset: 0,
         yOffset: 0
     },
@@ -44,20 +48,29 @@ import * as actions from './actions';
 
 export function reducer(state = initialState, action) {
 
-    console.log(state.rows);
 
     switch(action.type) {
+        
         /**
          * 
          */
-        case actions.INITIALISE_GRID: {
-            const viewport = {
-                ...state.viewport,
-                rows: action.payload.rows,
-                cols: action.payload.cols
-            };
-            const size = _getSize(action.payload.cells);
-            return {...state, ...action.payload, ...size, initialised: true, viewport};
+        case actions.SET_VIEWPORT: {
+            const rows = Math.floor(action.payload.width / state.cellWidth);
+            const cols = Math.floor(action.payload.height / state.cellHeight);
+            return {... state, viewport: {...state.viewport, ...action.payload, rows, cols }};
+        }
+
+        case actions.SET_TEXT: {
+            const text = action.payload.text;
+            const cells = text.replace(/\r\n/g, "\r").replace(/\n/g, "\r").split(/\r/).map(line => line.split(''));
+        
+            return {...state, cells };
+        }
+
+        case actions.SET_CELL_SIZE: {
+            const cellWidth = action.payload.width;
+            const cellHeight = action.payload.height;
+            return {...state, cellWidth, cellHeight };
         }
 
         /**
@@ -82,10 +95,9 @@ export function reducer(state = initialState, action) {
             cells[rowIndex][colIndex] = value;
 
             _trimArrCells(cells);
-            const newSize = _getSize(cells);
 
             
-            return {...state, ...newSize, cells };
+            return {...state, cells };
         }
 
         /**
@@ -253,16 +265,16 @@ export function reducer(state = initialState, action) {
                     colIndex: state.hover.colIndex,
                 };
                 const selection = {...state.selection, isDragging: true};
-                
     
                 return {...state, selection, target};
             }
             else {
                 // Continue dragging
                 const selection = {...state.selection};
-                selection.endRowIndex = state.hover.rowIndex;
-                selection.endColIndex = state.hover.colIndex;
-                selection.endColIndex += (selection.endColIndex < selection.startColIndex ? 0 : 1);
+                const dx = state.hover.colIndex < selection.startColIndex ? 0 : 1;
+                const dy = state.hover.rowIndex < selection.startRowIndex ? 0 : 1;
+                selection.endRowIndex = state.hover.rowIndex + dy;
+                selection.endColIndex = state.hover.colIndex + dx;
                 
                 const target = {
                     ...state.target,
@@ -319,9 +331,9 @@ export function reducer(state = initialState, action) {
                 endColIndex: sx + numCols
             };
 
-            const size = _getSize(cells);
+            
 
-            return {...state, ...size, cells, selection };
+            return {...state, cells, selection };
         }
 
         case actions.FILL_SELECTION: {
@@ -339,16 +351,14 @@ export function reducer(state = initialState, action) {
             const yMax = Math.max(sy, ey);
 
             // fill the cells with the paste data
-            for(let y=yMin; y<=yMax; y++) {
+            for(let y=yMin; y<yMax; y++) {
                 for(let x=xMin; x<xMax; x++) {
                     _fillArrCells(cells, x, y);
                     cells[y][x] = action.payload;
                 }
             }
 
-            const size = _getSize(cells);
-
-            return {...state, ...size, cells };
+            return {...state, cells };
         }
 
         /**
@@ -359,12 +369,6 @@ export function reducer(state = initialState, action) {
         }
     }
 };
-
-function _getSize(arr) {
-    const rows = arr.length;
-    const cols = Math.max(...arr.map(z => z.length));
-    return {rows, cols};
-}
 
 function _fillArrCells(arr, x, y) {
     while(arr.length <= y)

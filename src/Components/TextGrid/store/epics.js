@@ -8,47 +8,29 @@ import { mergeMap } from 'rxjs/operators';
 
 
 
-const setupGrid = (action, state) => action.pipe(
-    ofType(actions.SETUP_GRID),
-    mergeMap((action) => {
-
-        const width = action.payload.width;
-        const height = action.payload.height;
-        const text = action.payload.text;
-
-        const cellWidth = action.payload.cellWidth || state.value.textGrid.cellWidth;
-        const cellHeight = action.payload.cellHeight || state.value.textGrid.cellHeight;
-
-        const rows = Math.floor(height / (cellHeight-1)) + 1;
-        const cols = Math.floor(width / (cellWidth-1)) + 1;
-        
-        // create a 2D array of characters, [rows][cols]
-        // regex strips out the various line endings
-        const cells = text.replace(/\r\n/g, "\r").replace(/\n/g, "\r").split(/\r/).map(line => line.split(''));
-        
-        // initialise the grid with the above calculated data
-        return [ actions.initialiseGrid({cellWidth, cellHeight, rows, cols, cells}) ];
-    })
-);
-
 const onMouseMoved = (action, state) => action.pipe(
     ofType(actions.MOUSE_MOVED),
     mergeMap((action) => {
 
         // get mouse coordinates
-        const mx = action.payload.mouseX;
-        const my = action.payload.mouseY;
+        const mx = action.payload.mouseX + state.value.textGrid.viewport.scrollX;
+        const my = action.payload.mouseY + state.value.textGrid.viewport.scrollY;
 
         // subtract 1 from width and height for row/col/cell index calculations
-        const cellWidth = state.value.textGrid.cellWidth - 1;
-        const cellHeight = state.value.textGrid.cellHeight - 1;
-
-        const viewport = state.value.textGrid.viewport;
+        const cellWidth = state.value.textGrid.cellWidth;
+        const cellHeight = state.value.textGrid.cellHeight;
 
         // calculate the row/col/cell index the mouse is over
-        const rowIndex = Math.floor(my / cellHeight) + viewport.yOffset;
-        const colIndex = Math.floor(mx / cellWidth) + viewport.xOffset;
-        
+        let rowIndex = Math.floor(my / cellHeight);
+        let colIndex = Math.floor(mx / cellWidth);
+
+
+        // clamp the rowIndex and colIndex within bounds of the grid.
+        if( rowIndex < 0 ) rowIndex = 0;
+        if( colIndex < 0 ) colIndex = 0;
+        if( rowIndex >= state.value.textGrid.rows) rowIndex = state.value.textGrid.rows - 1;
+        if( colIndex >= state.value.textGrid.cols) colIndex = state.value.textGrid.cols - 1;
+
         const hoverState = { rowIndex, colIndex };
         const newActions = [];
 
@@ -144,7 +126,11 @@ const onKeyDown = (action, state) => action.pipe(
                     const selection = { ...state.value.textGrid.selection };
                     selection.endColIndex += dir.x;
                     selection.endRowIndex += dir.y;
-                    return[  ...cbActions, actions.setSelectionArea(selection), actions.setTypeingDir(dir.x, dir.y) ];
+                    return[  
+                        ...cbActions, 
+                        actions.setSelectionArea(selection), 
+                        actions.setTypeingDir(dir.x, dir.y)
+                    ];
                 }
                 else {
                     return [
@@ -167,7 +153,6 @@ const onCopy = (action, state) => action.pipe(
         const s = _getSelectedText(state);
         navigator.clipboard.writeText(s)
 
-
         return [];
 
     })
@@ -183,7 +168,6 @@ const onCut = (action, state) => action.pipe(
 );
 
 export const epics = combineEpics(
-    setupGrid,
     onMouseMoved,
     onKeyDown,
     onCopy,
