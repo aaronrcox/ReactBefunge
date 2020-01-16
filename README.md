@@ -21,3 +21,10 @@ Live demo project is published to github pages:<br/>https://aaronrcox.github.io/
 
 
 
+# TODO:
+ - prevent selection from moving outside of of program bounds
+ - prevent typeing out of program bounds
+ - change cursor to drag icon when hovered over selection
+ - implement click and drag for selection
+ - show scrollbar for stack view
+ - move scrollbars for textGrid to always view the target cell
