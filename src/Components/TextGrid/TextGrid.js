@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useRef, forwardRef, useImperativeHandle } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, forwardRef, useImperativeHandle, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { store } from '../../store';
 import * as actions from './store/actions';
@@ -95,8 +95,7 @@ function TextGridCanvasRender(canvas, ctx, state) {
 
     // begin: render the hilighted cells
     // -----------------------------------------------------------------------
-
-    if( state.selection !== null) {
+    {
         const left = Math.min(state.selection.startColIndex, state.selection.endColIndex);
         const right = Math.max(state.selection.startColIndex, state.selection.endColIndex);
         const top = Math.min(state.selection.startRowIndex, state.selection.endRowIndex);
@@ -104,8 +103,8 @@ function TextGridCanvasRender(canvas, ctx, state) {
 
         const xPos = left * state.cellWidth;
         const yPos = top * state.cellHeight;
-        const width = (right - left) * state.cellWidth;
-        const height = (bottom - top) * state.cellHeight;
+        const width = (right - left + 1) * state.cellWidth;
+        const height = (bottom - top + 1) * state.cellHeight;
 
         ctx.globalAlpha = 0.04;
         ctx.fillStyle = textColor;
@@ -116,58 +115,8 @@ function TextGridCanvasRender(canvas, ctx, state) {
         ctx.strokeStyle = textColor;
         ctx.strokeRect(xPos, yPos, width, height);
     }
-   
     // -----------------------------------------------------------------------
-    // begin: render the hilighted cells
-
-    // begin: render the current cursor position
-    // -----------------------------------------------------------------------
-
-    if(state.target.colIndex >= startCol && state.target.colIndex < endCol &&
-        state.target.rowIndex >= startRow && state.target.rowIndex < endRow )
-    {
-        const xPos = state.target.colIndex * state.cellWidth;
-        const yPos = state.target.rowIndex * state.cellHeight;
-
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-        ctx.fillRect(xPos, yPos, state.cellWidth, state.cellHeight);
-
-        ctx.strokeStyle = 'yellow';
-        ctx.beginPath();
-
-        // render for curstor moving to the right
-        if( state.target.dir.x > 0 ) {
-            ctx.moveTo(xPos, yPos);
-            ctx.lineTo(xPos, yPos + state.cellHeight);
-        }
-
-        // render for cursor moving to the left
-        if( state.target.dir.x < 0 ) {
-            ctx.moveTo(xPos + state.cellWidth, yPos);
-            ctx.lineTo(xPos + state.cellWidth, yPos + state.cellHeight);
-        }
-
-        // render for cursor moving up
-        if( state.target.dir.y > 0 ) {
-            ctx.moveTo(xPos, yPos);
-            ctx.lineTo(xPos + state.cellWidth, yPos);
-        }
-
-        // render for cursor moving down
-        if( state.target.dir.y < 0 ) {
-            ctx.moveTo(xPos, yPos + state.cellHeight);
-            ctx.lineTo(xPos + state.cellWidth, yPos + state.cellHeight);
-        }
-
-        
-        ctx.closePath();
-        ctx.stroke();
-        
-
-    }
-
-    // -----------------------------------------------------------------------
-    // begin: render the current cursor position
+    // end: render the hilighted cells
 
     ctx.restore();
 
@@ -188,39 +137,7 @@ export const TextGridCanvas = forwardRef((props, ref) => {
     console.log({fullWidth, fullHeight});
 
     const canvasRef = useRef(null);
-    const scrollRef = useRef(null);
-
-    useEffect(() => {
-        dispatch(actions.setText(props.config.text))
-    }, [props.config.text]);
-
-    useEffect(() => {
-        dispatch(actions.setCellSize(props.config.cellWidth, props.config.cellHeight));
-    }, [props.config.cellWidth, props.config.cellHeight]);
-
-    useLayoutEffect(() => {       
-
-        if( canvasRef.current ) {
-            const canvas = canvasRef.current;
-            const ctx = canvas.getContext('2d');
-            let requestAnimFrameObj = {};
-            const renderLoopFn = () => {
-                TextGridCanvasRender(canvas, ctx, store.getState().textGrid);
-                requestAnimFrameObj.handle = requestAnimationFrame(renderLoopFn);
-            };
-            renderLoopFn();
-            
-            return () => {
-                console.log('cleanup');
-                cancelAnimationFrame(requestAnimFrameObj.handle)
-            }
-        }
-        
-    }, [canvasRef.current]);
-
-    useEffect(() => {
-        resizeCanvas();
-    }, [props.dimensions]);    
+    const scrollRef = useRef(null);  
 
     const handleMouseMove = (event) => {
         
@@ -251,7 +168,7 @@ export const TextGridCanvas = forwardRef((props, ref) => {
         dispatch(actions.setHoverCell({rowIndex: -1, colIndex: -1}));
     };
 
-    const resizeCanvas = () => {
+    const resizeCanvas = useCallback(() => {
         const width = scrollRef.current ? scrollRef.current.clientWidth : 0;
         const height = scrollRef.current ? scrollRef.current.clientHeight : 0;
         const scrollX = scrollRef.current ? scrollRef.current.scrollLeft : undefined;
@@ -262,7 +179,7 @@ export const TextGridCanvas = forwardRef((props, ref) => {
         }
         console.log( {width, height, scrollX, scrollY });
         dispatch(actions.setViewport(width, height, scrollX, scrollY));
-    }
+    }, [dispatch]);
 
 
     const handleKeyPress = (event) => {
@@ -294,6 +211,38 @@ export const TextGridCanvas = forwardRef((props, ref) => {
             }));
         }
     };
+
+    useEffect(() => {
+        dispatch(actions.setText(props.config.text))
+    }, [dispatch, props.config.text]);
+
+    useEffect(() => {
+        dispatch(actions.setCellSize(props.config.cellWidth, props.config.cellHeight));
+    }, [dispatch, props.config.cellWidth, props.config.cellHeight]);
+
+    useLayoutEffect(() => {       
+
+        if( canvasRef.current ) {
+            const canvas = canvasRef.current;
+            const ctx = canvas.getContext('2d');
+            let requestAnimFrameObj = {};
+            const renderLoopFn = () => {
+                TextGridCanvasRender(canvas, ctx, store.getState().textGrid);
+                requestAnimFrameObj.handle = requestAnimationFrame(renderLoopFn);
+            };
+            renderLoopFn();
+            
+            return () => {
+                console.log('cleanup');
+                cancelAnimationFrame(requestAnimFrameObj.handle)
+            }
+        }
+        
+    }, [dispatch]);
+
+    useEffect(() => {
+        resizeCanvas();
+    }, [resizeCanvas, props.dimensions]); 
 
     return(
         <div ref={scrollRef} className="customScrollbars" onScroll={handleScroll} style={{position: 'relative', width: '100%', height: '100%', overflow: 'auto'}}>

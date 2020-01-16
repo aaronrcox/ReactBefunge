@@ -54,67 +54,58 @@ const onKeyDown = (action, state) => action.pipe(
     ofType(actions.KEY_DOWN),
     mergeMap((action) => {
         const key = action.payload.key;
-        const rowIndex = state.value.textGrid.target.rowIndex;
-        const colIndex = state.value.textGrid.target.colIndex;
+
         const isShiftDown = action.payload.isShiftDown;
         
         const cbResult = action.payload.callback(state.value, key) || {};
         const cbActions = cbResult.actions || [];
+
+        const numRowsSelected = Math.abs(state.value.textGrid.selection.endRowIndex - state.value.textGrid.selection.startRowIndex) + 1;
+        const numColsSelected = Math.abs(state.value.textGrid.selection.endColIndex - state.value.textGrid.selection.startColIndex) + 1;
+        const numItemsSelected = numRowsSelected * numColsSelected;
         
         if(cbResult.preventDefault) {
             return cbActions;
         }
 
         if(key.length === 1) {
-            if( state.value.textGrid.selection.startRowIndex !== state.value.textGrid.selection.endRowIndex ||
-                state.value.textGrid.selection.startColIndex !== state.value.textGrid.selection.endColIndex  ) {
-
-                    // fill the slection area
-                    return [actions.fillSelection(key)];
-            }
-            else {
-                // insert the character at the cursor positon
-                return [
-                    ...cbActions,
-                    actions.setCellValue({ rowIndex, colIndex, value: key }),
-                    actions.moveTargetCell(),
-                ];
+            if( numItemsSelected > 1) {
+                return [...cbActions, actions.fillSelection(key)];
             }
             
+            return [ ...cbActions, actions.fillSelection(key), actions.moveSelection() ];
         }
         else {
             if( key === 'Tab' ) {
                 const dir = isShiftDown ? -1 : 1;
-                return[ ...cbActions, actions.moveTargetCell(dir, 0) ];
+                return[ ...cbActions, actions.moveSelection(dir, 0) ];
             }
             if( key === 'Enter' ) {
                 const dir = isShiftDown ? -1 : 1;
-                return [ ...cbActions, actions.moveTargetCell(0, dir) ];
+                return [ ...cbActions, actions.moveSelection(0, dir) ];
             }
             else if( key === 'Backspace') {
-                return [
-                    ...cbActions,
-                    actions.clearSelectionArea(),
-                    actions.setCellValue({ value: '' }),
-                    actions.moveTargetCell(undefined, undefined, true)
-                ];
+
+                cbActions.push(actions.clearSelectionArea());
+                
+                // only move the selection if we have 1 item selected
+                if( numItemsSelected === 1 )
+                    cbActions.push(actions.moveSelection(undefined, undefined, true));
+
+                return cbActions;
             }
             else if( key === 'Delete') {
-                return [ 
-                    ...cbActions, 
-                    actions.clearSelectionArea(),
-                    actions.setCellValue({ rowIndex, colIndex, value: '' }) 
-                ];
+                return [...cbActions, actions.clearSelectionArea() ];
             }
             else if( key.includes('Arrow') )
             {
                 // calculate xy direction of arrow key press
-                let dir = {x: 0, y: 0};
+                let cursorDir = {x: 0, y: 0};
                 switch(key) {
-                    case 'ArrowLeft': dir.x = -1; break;
-                    case 'ArrowRight': dir.x = 1; break;
-                    case 'ArrowUp': dir.y = -1; break;
-                    case 'ArrowDown': dir.y = 1; break;
+                    case 'ArrowLeft': cursorDir.x = -1; break;
+                    case 'ArrowRight': cursorDir.x = 1; break;
+                    case 'ArrowUp': cursorDir.y = -1; break;
+                    case 'ArrowDown': cursorDir.y = 1; break;
                     default: break;
                 }
 
@@ -124,19 +115,20 @@ const onKeyDown = (action, state) => action.pipe(
                 if(isShiftDown) {
                     // TODO: create action to grow/shrink the selection area
                     const selection = { ...state.value.textGrid.selection };
-                    selection.endColIndex += dir.x;
-                    selection.endRowIndex += dir.y;
+                    selection.endColIndex += cursorDir.x;
+                    selection.endRowIndex += cursorDir.y;
+                    selection.showSelection = true;
                     return[  
                         ...cbActions, 
                         actions.setSelectionArea(selection), 
-                        actions.setTypeingDir(dir.x, dir.y)
+                        actions.setTypeingDir(cursorDir.x, cursorDir.y)
                     ];
                 }
                 else {
                     return [
                         ...cbActions, 
-                        actions.moveTargetCell(dir.x, dir.y), 
-                        actions.setTypeingDir(dir.x, dir.y)
+                        actions.moveSelection(cursorDir.x, cursorDir.y), 
+                        actions.setTypeingDir(cursorDir.x, cursorDir.y)
                     ];
                 }
             }

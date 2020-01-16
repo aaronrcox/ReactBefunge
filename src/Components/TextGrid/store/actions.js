@@ -18,7 +18,7 @@ export const SET_HOVER_CELL = '[TextGrid] Set Hover Cell';
 export const SET_CELL_VALUE = '[TextGrid] Set Cell Text';
 
 export const SET_TARGET_CELL = '[TextGrid] Set Target Cell';
-export const MOVE_TARGET_CELL = '[TextGrid] Move Target Cell';
+export const MOVE_SELECTION = '[TextGrid] Move Selection';
 
 export const INSERT_ROW = '[TextGrid] Insert Row';
 export const INSERT_COL = '[TextGrid] Insert Col';
@@ -66,8 +66,6 @@ export function setCellSize(width, height) {
     return {type: SET_CELL_SIZE, payload: {width, height} };
 }
 
-
-
 export function mouseMoved(mousePos) {
     return { type: MOUSE_MOVED, payload: mousePos };
 }
@@ -104,8 +102,8 @@ export function setTargetCell(rowIndex, colIndex) {
     return { type: SET_TARGET_CELL, payload: { rowIndex, colIndex} };
 }
 
-export function moveTargetCell(x, y, invert) {
-    return { type: MOVE_TARGET_CELL, payload: {x, y, invert} };
+export function moveSelection(xAmount, yAmount, invert) {
+    return { type: MOVE_SELECTION, payload: {xAmount, yAmount, invert} };
 }
 
 

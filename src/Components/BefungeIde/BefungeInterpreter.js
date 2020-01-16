@@ -7,6 +7,16 @@ export default class BefungeInterpreter {
         this.program = program;
         this.numRows = 25;
         this.numCols = 80;
+
+        // add the required amount of rows
+        while(this.program.length < this.numRows)
+            this.program.push([]);
+
+        // for each row, add the required amount of columns
+        for(let rowIndex = 0; rowIndex < this.numRows; rowIndex++){
+            while(this.program[rowIndex].length < this.numCols)
+                this.program[rowIndex].push('');
+        }
         
         this.stack = [];
         this.stack$ = new BehaviorSubject([]);
@@ -275,7 +285,7 @@ export default class BefungeInterpreter {
             if( nx >= this.numCols ) nx = 0;
             
             
-        }while(this.skipCount >= 0)
+        } while(this.skipCount >= 0)
         this.skipCount = 0;
             
     

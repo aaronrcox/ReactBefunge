@@ -7,7 +7,7 @@ import * as actions from './actions';
     rows: 25,    // Befunge 93 specifies strict row / col sizes
     cols: 80,    // Befunge 93 specifies strict row / col sizes
     cells: [],
-    insertMode: false,
+    cursorDir: {x: 1, y: 0},
 
     viewport: {
         rows: 0,
@@ -25,13 +25,8 @@ import * as actions from './actions';
         colIndex: -1,
     },
 
-    target: {
-        rowIndex: -1,
-        colIndex: -1,
-        dir: {x: 1, y: 0}
-    },
-
     selection: {
+        showSelection: false,
         isMouseDown: false,
         isDragging: false,
         startRowIndex: 0,
@@ -57,7 +52,8 @@ export function reducer(state = initialState, action) {
         case actions.SET_VIEWPORT: {
             const rows = Math.floor(action.payload.width / state.cellWidth);
             const cols = Math.floor(action.payload.height / state.cellHeight);
-            return {... state, viewport: {...state.viewport, ...action.payload, rows, cols }};
+            const viewport = {...state.viewport, ...action.payload, rows, cols };
+            return {...state, viewport};
         }
 
         case actions.SET_TEXT: {
@@ -85,8 +81,8 @@ export function reducer(state = initialState, action) {
          */
         case actions.SET_CELL_VALUE: {
 
-            const rowIndex = action.payload.rowIndex ? action.payload.rowIndex : state.target.rowIndex;
-            const colIndex = action.payload.colIndex ? action.payload.colIndex : state.target.colIndex;
+            const rowIndex = action.payload.rowIndex ? action.payload.rowIndex : state.selection.startRowIndex;
+            const colIndex = action.payload.colIndex ? action.payload.colIndex : state.selection.startColIndex;
             const value = action.payload.value;
 
             const cells = state.cells;
@@ -104,37 +100,39 @@ export function reducer(state = initialState, action) {
          * 
          */
         case actions.SET_TARGET_CELL: {
-            const target = {...state.target, ...action.payload };
+
+            // set the target
+            const rowIndex = action.payload.rowIndex;
+            const colIndex = action.payload.colIndex;
+
+            // reset the selection area
             const selection = {
                 ...state.selection,
-                startRowIndex: target.rowIndex,
-                startColIndex: target.colIndex,
-                endRowIndex: target.rowIndex,
-                endColIndex: target.colIndex
+                showSelection: false,
+                startRowIndex: rowIndex,
+                startColIndex: colIndex,
+                endRowIndex: rowIndex,
+                endColIndex: colIndex
             };
-            const viewport = calculateViewport(state.viewport, target);
-            return {...state, viewport, target, selection };
+
+            return {...state, selection };
         }
 
         /**
          * 
          */
-        case actions.MOVE_TARGET_CELL: {
-            const modifier = action.payload.invert ? -1 : 1;
-            const xDir = action.payload && action.payload.x !== undefined ? action.payload.x : state.target.dir.x;
-            const yDir = action.payload && action.payload.y !== undefined ? action.payload.y : state.target.dir.y;
-            const target = {...state.target, ..._moveTarget(state.target, xDir * modifier, yDir * modifier) };
-            const selection = {
-                ...state.selection,
-                startRowIndex: target.rowIndex,
-                startColIndex: target.colIndex,
-                endRowIndex: target.rowIndex,
-                endColIndex: target.colIndex
-            };
+        case actions.MOVE_SELECTION: {
+            const invertMod = action.payload && action.payload.invert ? -1 : 1;
+            const xDir = (action.payload && action.payload.xAmount !== undefined ? action.payload.xAmount : state.cursorDir.x) * invertMod;
+            const yDir = (action.payload && action.payload.yAmount !== undefined ? action.payload.yAmount : state.cursorDir.y) * invertMod;
+            
+            const selection = { ...state.selection };
+            selection.startColIndex += xDir;
+            selection.endColIndex += xDir;
+            selection.startRowIndex += yDir;
+            selection.endRowIndex += yDir;
 
-            const viewport = calculateViewport(state.viewport, target);
-
-            return { ...state, viewport, target, selection };
+            return { ...state, selection };
         }
 
 
@@ -188,12 +186,7 @@ export function reducer(state = initialState, action) {
          */
         case actions.SET_SELECTION_AREA: {
             const selection = {...state.selection, ...action.payload};
-            const target = {
-                ...state.target,
-                rowIndex: selection.endRowIndex,
-                colIndex: selection.endColIndex,
-            };
-            return {...state, selection, target };
+            return {...state, selection };
         }
 
         case actions.CLEAR_SELECTION_AREA: {
@@ -203,8 +196,8 @@ export function reducer(state = initialState, action) {
             const sci = Math.min(state.selection.startColIndex, state.selection.endColIndex);
             const eci = Math.max(state.selection.startColIndex, state.selection.endColIndex);
 
-            for(let r=sri; r<=eri && r < cells.length; r++){
-                for(let c=sci; c<eci && c < cells[r].length; c++) {
+            for(let r=sri; r<=eri && r < cells.length; r++) {
+                for(let c=sci; c<=eci && c < cells[r].length; c++) {
                     cells[r][c] = '';
                 }
             }
@@ -223,6 +216,7 @@ export function reducer(state = initialState, action) {
             };
             const selection = {
                 ...state.selection,
+                showSelection: true,
                 startColIndex: target.colIndex,
                 startRowIndex: target.rowIndex,
                 endColIndex: target.colIndex,
@@ -257,43 +251,24 @@ export function reducer(state = initialState, action) {
          */
         case actions.DRAG: {
 
-            if( !state.selection.isDragging ) {
-                // Begin Dragging
-                const target = {
-                    ...state.target,
-                    rowIndex: state.hover.rowIndex,
-                    colIndex: state.hover.colIndex,
-                };
-                const selection = {...state.selection, isDragging: true};
-    
-                return {...state, selection, target};
-            }
-            else {
-                // Continue dragging
+            //if( !state.selection.isDragging ) { // Begin Dragging
+            //    const selection = {...state.selection, isDragging: true, showSelection: true};
+            //    return {...state, selection};
+            //}
+            //else { // Continue dragging
                 const selection = {...state.selection};
-                const dx = state.hover.colIndex < selection.startColIndex ? 0 : 1;
-                const dy = state.hover.rowIndex < selection.startRowIndex ? 0 : 1;
-                selection.endRowIndex = state.hover.rowIndex + dy;
-                selection.endColIndex = state.hover.colIndex + dx;
-                
-                const target = {
-                    ...state.target,
-                    rowIndex: state.hover.rowIndex,
-                    colIndex: state.hover.colIndex,
-                };
-                return {...state, selection, target };
-            }
-           
+                selection.endRowIndex = state.hover.rowIndex;
+                selection.endColIndex = state.hover.colIndex;
+                return {...state, selection };
+            //}  
         }
 
         /**
          * 
          */
         case actions.SET_TYPEING_DIRECTION: {
-            const target = { ...state.target };
-            target.dir = { ...action.payload };
-            return {...state, target };
-            //return state;
+            const cursorDir = {  ...action.payload };
+            return {...state, cursorDir };
         }
 
         case actions.PASTE: {
@@ -351,8 +326,8 @@ export function reducer(state = initialState, action) {
             const yMax = Math.max(sy, ey);
 
             // fill the cells with the paste data
-            for(let y=yMin; y<yMax; y++) {
-                for(let x=xMin; x<xMax; x++) {
+            for(let y=yMin; y<=yMax; y++) {
+                for(let x=xMin; x<=xMax; x++) {
                     _fillArrCells(cells, x, y);
                     cells[y][x] = action.payload;
                 }
@@ -395,44 +370,4 @@ function _trimArrCells(arr) {
     }
 
     console.log(arr);
-}
-
-function _moveTarget(target, dx, dy) {
-
-    let rowIndex = target.rowIndex + dy;
-    let colIndex = target.colIndex + dx;
-
-    // prevent wrapping
-    rowIndex = Math.max(rowIndex, 0);
-    colIndex = Math.max(colIndex, 0);
-
-    return { rowIndex, colIndex };
-}
-
-function calculateViewport(viewport, target) {
-    const v = {...viewport};
-
-    const vLeft = v.xOffset;
-    const vRight = v.xOffset + v.cols - 2;
-    const vTop = v.yOffset;
-    const vBottom = v.yOffset + v.rows - 1;
-
-    // if the target is within the viewport, dont change
-    if( target.colIndex >= vLeft && target.colIndex <= vRight &&
-        target.rowIndex >= vBottom && target.rowIndex <= vTop )
-        return viewport;
-
-    if( target.colIndex < vLeft ) 
-        v.xOffset = target.colIndex;
-
-    if(  target.colIndex >= vRight ) 
-        v.xOffset = (target.colIndex - v.cols) + 3;
-
-    if( target.rowIndex < vTop ) 
-        v.yOffset = target.rowIndex;
-
-    if( target.rowIndex >= vBottom ) 
-        v.yOffset = (target.rowIndex - v.rows) + 2;
-
-    return v;
 }

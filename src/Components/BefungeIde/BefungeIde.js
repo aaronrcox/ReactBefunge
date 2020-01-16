@@ -1,7 +1,7 @@
 
 import 'react-reflex/styles.css';
 import React, {useRef, forwardRef, useState} from 'react';
-import { TextGrid, TextGridStatusBar, actions, TextGridCanvas} from '../TextGrid';
+import { TextGridStatusBar, actions, TextGridCanvas} from '../TextGrid';
 import { Terminal } from '../Terminal';
 import { Toolbar } from '../Toolbar';
 import BefungeInterpreter from './BefungeInterpreter';
@@ -16,7 +16,6 @@ const BefungeIde = forwardRef((props, ref) => {
 
     let [befungeInterpreter, setBefungeInterpreter] = useState(null);
     
-
     const handleKeyPress = (store, key) => {
         if( key === 'v') return { preventDefault: false, actions: [actions.setTypeingDir( 0, 1)] };
         if( key === '>') return { preventDefault: false, actions: [actions.setTypeingDir( 1, 0)] };
@@ -106,12 +105,12 @@ const BefungeIde = forwardRef((props, ref) => {
             befungeInterpreter.input(input);
     }
 
-    const prog = 
-`"v
- a
- a
- a
- @`;
+//     const prog = 
+// `"v
+//  a
+//  a
+//  a
+//  @`;
 
 // let prog = 
 // `>              v
@@ -120,8 +119,8 @@ const BefungeIde = forwardRef((props, ref) => {
 // v,,,,,,"World!"<
 // >25*,@`;
 
-// prog = `<v"\]^_"abc%u$#d%t$#e%s$#f%r$#g%q$#h%ponmlkji"
-// 3<_@#:,-*9`
+const prog = `<v"]^_"abc%u$#d%t$#e%s$#f%r$#g%q$#h%ponmlkji"
+3<_@#:,-*9`;
 
 // const prog = 
 // `64+"!dlroW ,olleH">:#,_@`;
